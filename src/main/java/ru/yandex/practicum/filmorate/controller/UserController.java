@@ -4,6 +4,7 @@ package ru.yandex.practicum.filmorate.controller;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.exception.EntityAlreadyExistException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserAlreadyExistException;
 
@@ -36,9 +37,9 @@ public class UserController {
     }
 
     @PostMapping
-    public User addUser(@Valid @RequestBody User user) throws UserAlreadyExistException {
+    public User addUser(@Valid @RequestBody User user) throws EntityAlreadyExistException {
         if (users.containsKey(user.getEmail())) {
-            throw new UserAlreadyExistException("Пользователь с указанным адресом электронной почты уже был добавлен раннее");
+            throw new EntityAlreadyExistException("Пользователь с указанным адресом электронной почты уже был добавлен раннее");
         }
         int id = setCounterId();
         user.setId(id);

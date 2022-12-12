@@ -3,6 +3,8 @@ package ru.yandex.practicum.filmorate.model;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.*;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.cglib.core.internal.LoadingCache;
 import org.springframework.format.annotation.DateTimeFormat;
 

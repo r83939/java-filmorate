@@ -52,13 +52,14 @@ public class UserController {
     public User updateUser(@Valid @RequestBody User user)  {
         if (users.containsKey(user.getEmail())) {
             users.put(user.getEmail(), user);
-            return user;
+            log.trace("Изменен пользователь: {}", user);
         }
         else {
             int id = setCounterId();
             user.setId(id);
             users.put(user.getEmail(), user);
-            return user;
+            log.trace("Добавлен пользователь: {}", user);
         }
+        return user;
     }
 }

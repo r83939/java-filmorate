@@ -7,6 +7,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.EntityAlreadyExistException;
+import ru.yandex.practicum.filmorate.exception.UnknownFilmException;
+import ru.yandex.practicum.filmorate.exception.UnknownUserException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 
@@ -37,9 +39,9 @@ public class FilmController {
 
     @PostMapping
     public Film addFilm(@Valid @RequestBody Film newFilm) throws EntityAlreadyExistException {
-        for (Film film : getFilmsList()) {
-            if (film.getName().equals(newFilm.getName()) && film.getReleaseDate().isEqual(newFilm.getReleaseDate())) {
-                throw new EntityAlreadyExistException("Фильм с таким названием и датой релиза уже был добавлен раннее");
+        for (Map.Entry entry : films.entrySet()) {
+            if(((Film)entry.getValue()).getName().equals(newFilm.getName())) {
+                throw new EntityAlreadyExistException("Фильм с таким названием уже был добавлен раннее");
             }
         }
         int id = setCounterId();
@@ -50,18 +52,15 @@ public class FilmController {
     }
 
     @PutMapping
-    public Film updateFilm(@Valid @RequestBody Film updateFilm) {
+    public Film updateFilm(@Valid @RequestBody Film updateFilm) throws UnknownFilmException {
         if (films.containsKey(updateFilm.getId())) {
             films.put(updateFilm.getId(), updateFilm);
             log.trace("Изменен фильм: {}", updateFilm);
+            return updateFilm;
         }
         else {
-            int id = setCounterId();
-            updateFilm.setId(id);
-            films.put(id, updateFilm);
-            log.trace("Добавлен фильм: {}", updateFilm);
+            throw new UnknownFilmException("Фильм с указанным id не был найден");
         }
-        return updateFilm;
     }
 
     private List<Film> getFilmsList() { // служебный метод получения списка фильмов

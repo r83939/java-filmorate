@@ -14,7 +14,7 @@ public class ExceptionApiHandler {
     public ResponseEntity<ErrorMessage> EntityAlreadyExistException(EntityAlreadyExistException exception) {
         log.error(exception.getMessage(), exception);
         return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
+                .status(HttpStatus.NOT_FOUND)
                 .body(new ErrorMessage(exception.getMessage()));
     }
 
@@ -22,7 +22,7 @@ public class ExceptionApiHandler {
     public ResponseEntity<ErrorMessage> UnknownUserException(UnknownUserException exception) {
         log.error(exception.getMessage(), exception);
         return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
+                .status(HttpStatus.NOT_FOUND)
                 .body(new ErrorMessage(exception.getMessage()));
     }
 }

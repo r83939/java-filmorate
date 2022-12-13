@@ -15,7 +15,7 @@ import java.util.*;
 @Slf4j
 public class UserController {
     private int counterId;
-    private Map<String, User> users;
+    private Map<Integer, User> users;
 
     private int setCounterId() {
         counterId++; // Инкремент счетчика id
@@ -38,24 +38,30 @@ public class UserController {
 
     @PostMapping
     public User addUser(@Valid @RequestBody User user) throws EntityAlreadyExistException {
-        if (users.containsKey(user.getEmail())) {
-            throw new EntityAlreadyExistException("Пользователь с указанным адресом электронной почты уже был добавлен раннее");
+        for (Map.Entry entry : users.entrySet()) {
+            if (((User)entry.getValue()).getEmail().equals(user.getEmail())) {
+                throw new EntityAlreadyExistException("Пользователь с указанным адресом электронной почты уже был добавлен раннее");
+            }
         }
         int id = setCounterId();
         user.setId(id);
-        users.put(user.getEmail(), user);
+        if (user.getName() == null) {
+            user.setName(user.getLogin());
+        }
+        users.put(id, user);
         log.trace("Добавлен пользователь: {}", user);
         return user;
     }
 
     @PutMapping
-    public User updateUser(@Valid @RequestBody User user) throws UnknownUserException {
-        if (users.containsKey(user.getEmail()) && users.get(user.getEmail()).getId() == user.getId()) {
-                users.put(user.getEmail(), user);
-                log.trace("Изменен пользователь: {}", user);
-            return user;
-        } else {
-            throw new UnknownUserException("Пользователь с указанным id и адресом электронной почты не был найден");
+    public User updateUser(@Valid @RequestBody User updateUser) throws UnknownUserException {
+        if (users.containsKey(updateUser.getId())) {
+            users.put(updateUser.getId(), updateUser);
+            log.trace("Изменен пользователь: {}", updateUser);
+            return updateUser;
+        }
+        else {
+            throw new UnknownUserException("Пользователь с указанным id не был найден");
         }
     }
 }

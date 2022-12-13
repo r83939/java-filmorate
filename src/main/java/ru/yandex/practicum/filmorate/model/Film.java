@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.cglib.core.internal.LoadingCache;
 import org.springframework.format.annotation.DateTimeFormat;
+import ru.yandex.practicum.filmorate.validator.MinDateRelease;
 
 import java.time.Duration;
 import java.time.LocalDate;
@@ -22,6 +23,7 @@ public class Film {
     @NotNull
     @JsonFormat(pattern = "yyyy-MM-dd")
     @DateTimeFormat(pattern = "yyyy-MM-dd")
+    @MinDateRelease
     @Past(message = "Incorrect date release")
     private LocalDate releaseDate;
     @NotNull

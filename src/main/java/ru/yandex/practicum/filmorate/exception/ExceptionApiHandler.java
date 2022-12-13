@@ -17,4 +17,12 @@ public class ExceptionApiHandler {
                 .status(HttpStatus.BAD_REQUEST)
                 .body(new ErrorMessage(exception.getMessage()));
     }
+
+    @ExceptionHandler(UnknownUserException.class)
+    public ResponseEntity<ErrorMessage> UnknownUserException(UnknownUserException exception) {
+        log.error(exception.getMessage(), exception);
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(new ErrorMessage(exception.getMessage()));
+    }
 }

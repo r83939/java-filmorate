@@ -5,8 +5,8 @@ import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.EntityAlreadyExistException;
+import ru.yandex.practicum.filmorate.exception.UnknownUserException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.service.UserAlreadyExistException;
 
 import java.util.*;
 
@@ -49,17 +49,13 @@ public class UserController {
     }
 
     @PutMapping
-    public User updateUser(@Valid @RequestBody User user)  {
-        if (users.containsKey(user.getEmail())) {
-            users.put(user.getEmail(), user);
-            log.trace("Изменен пользователь: {}", user);
+    public User updateUser(@Valid @RequestBody User user) throws UnknownUserException {
+        if (users.containsKey(user.getEmail()) && users.get(user.getEmail()).getId() == user.getId()) {
+                users.put(user.getEmail(), user);
+                log.trace("Изменен пользователь: {}", user);
+            return user;
+        } else {
+            throw new UnknownUserException("Пользователь с указанным id и адресом электронной почты не был найден");
         }
-        else {
-            int id = setCounterId();
-            user.setId(id);
-            users.put(user.getEmail(), user);
-            log.trace("Добавлен пользователь: {}", user);
-        }
-        return user;
     }
 }

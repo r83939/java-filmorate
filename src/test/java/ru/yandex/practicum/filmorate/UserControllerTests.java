@@ -42,7 +42,6 @@ class UserControllerTests {
 		Assert.assertTrue("Неверное имя",convertedObject.get("name").getAsString().equals("Joan"));
 		Assert.assertTrue("Неверная email",convertedObject.get("email").getAsString().equals("joan@gmail.ru"));
 		Assert.assertTrue("Неверный день рождения",convertedObject.get("birthday").getAsString().equals("1941-01-09"));
-
 	}
 
 	@Test
@@ -101,7 +100,4 @@ class UserControllerTests {
 						.content(requestBody))
 				.andExpect(status().isBadRequest());
 	}
-
-
-
 }

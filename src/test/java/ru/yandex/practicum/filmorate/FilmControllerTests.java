@@ -43,7 +43,6 @@ public class FilmControllerTests {
         Assert.assertTrue("Неверное описание",convertedObject.get("description").getAsString().equals("fantastic"));
         Assert.assertTrue("Неверная дата релиза",convertedObject.get("releaseDate").getAsString().equals("2009-12-17"));
         Assert.assertTrue("Неверная продолжительность фильма",convertedObject.get("duration").getAsString().equals("162"));
-
     }
 
     @Test
@@ -81,7 +80,4 @@ public class FilmControllerTests {
                         .content(requestBody))
                 .andExpect(status().isBadRequest());
     }
-
-
-
 }

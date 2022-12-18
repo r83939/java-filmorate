@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.controller;
 
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.EntityAlreadyExistException;
 import ru.yandex.practicum.filmorate.exception.UnknownUserException;
@@ -45,7 +46,7 @@ public class UserController {
         }
         int id = setCounterId();
         user.setId(id);
-        if (user.getName() == null) {
+        if (StringUtils.isBlank(user.getName())) {
             user.setName(user.getLogin());
         }
         users.put(id, user);
@@ -56,6 +57,9 @@ public class UserController {
     @PutMapping
     public User updateUser(@Valid @RequestBody User updateUser) throws UnknownUserException {
         if (users.containsKey(updateUser.getId())) {
+            if (StringUtils.isBlank(updateUser.getName())) {
+                updateUser.setName(updateUser.getLogin());
+            }
             users.put(updateUser.getId(), updateUser);
             log.trace("Изменен пользователь: {}", updateUser);
             return updateUser;

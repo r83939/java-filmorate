@@ -6,11 +6,12 @@ import org.springframework.format.annotation.DateTimeFormat;
 import ru.yandex.practicum.filmorate.validator.Login;
 
 import java.time.LocalDate;
+import java.util.Set;
 import javax.validation.constraints.*;
 
 @Data
 public class User {
-    private int id;
+    private long id;
     @Email
     @NotBlank
     private String email;
@@ -23,4 +24,8 @@ public class User {
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     @Past(message = "Incorrect date birthday")
     private LocalDate birthday;
+
+    private Set<Long> friends;
+
+
 }

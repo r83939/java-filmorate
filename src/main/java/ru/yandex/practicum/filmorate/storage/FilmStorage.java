@@ -10,7 +10,6 @@ public interface FilmStorage {
 
     Film updateFilm(Film film);
 
-    Film getFilmByName(String filmName);
 
     List<Film> getAllFilms();
 

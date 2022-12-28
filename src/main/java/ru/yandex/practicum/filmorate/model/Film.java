@@ -31,5 +31,13 @@ public class Film {
     @Positive
     private int duration;
 
-    private Set<Long> Likes;
+    private Set<Long> likes;
+
+    public boolean addLike(Long id) {
+        return  likes.add(id);
+    }
+
+    public boolean deleteLike(Long id) {
+        return  likes.remove(id);
+    }
 }

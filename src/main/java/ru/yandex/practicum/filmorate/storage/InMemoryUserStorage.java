@@ -4,23 +4,18 @@ import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.EntityAlreadyExistException;
 import ru.yandex.practicum.filmorate.model.User;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
 @Component
 public class InMemoryUserStorage implements UserStorage{
-    private int counterId;
+
     private Map<String, User> users; // key = email
 
     public InMemoryUserStorage() {
-        counterId = 0;
         users = new TreeMap<>();
-    }
-
-    private int setCounterId() {
-        counterId++; // Инкремент счетчика id
-        return counterId;
     }
 
     public Map<String, User> getUsers(){
@@ -30,21 +25,14 @@ public class InMemoryUserStorage implements UserStorage{
 
     @Override
     public User createUser(User user) {
-        if (user.getEmail()==null || user.getEmail().isBlank()) {
-
-            //throw new InvalidEmailException("Адрес электронной почты не может быть пустым.");
-        }
-        if (users.containsKey(user.getEmail())) {
-          //  throw new UserAlreadyExistException("Пользователь с электронной почтой " +
-                  //  user.getEmail() + " уже зарегистрирован.");
-        }
         users.put(user.getEmail(), user);
         return user;
     }
 
     @Override
     public User updateUser(User user) {
-        return null;
+        users.put(user.getEmail(), user);
+        return user;
     }
 
     @Override
@@ -53,8 +41,17 @@ public class InMemoryUserStorage implements UserStorage{
     }
 
     @Override
+    public User getUserByEmail(String email) {
+        return users.get(email);
+    }
+
+    @Override
     public List<User> getAllUsers() {
-        return null;
+        List<User> userList = new ArrayList<>();
+        for (Map.Entry<String, User> entry : users.entrySet()) {
+            userList.add(entry.getValue());
+        }
+        return userList;
     }
 
     @Override

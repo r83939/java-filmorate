@@ -27,5 +27,13 @@ public class User {
 
     private Set<Long> friends;
 
+    public boolean addFriend(Long id) {
+        return  friends.add(id);
+    }
+
+    public boolean deleteFriend(Long id) {
+        return  friends.remove(id);
+    }
+
 
 }

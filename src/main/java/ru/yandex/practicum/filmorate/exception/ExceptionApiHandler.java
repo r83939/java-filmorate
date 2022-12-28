@@ -25,4 +25,20 @@ public class ExceptionApiHandler {
                 .status(HttpStatus.NOT_FOUND)
                 .body(new ErrorMessage(exception.getMessage()));
     }
+
+    @ExceptionHandler(UnknownFilmException.class)
+    public ResponseEntity<ErrorMessage> UnknownFilmException(UnknownFilmException exception) {
+        log.error(exception.getMessage(), exception);
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(new ErrorMessage(exception.getMessage()));
+    }
+
+    @ExceptionHandler(UserIsNotFriendException.class)
+    public ResponseEntity<ErrorMessage> UserIsNotFriendException(UserIsNotFriendException exception) {
+        log.error(exception.getMessage(), exception);
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(new ErrorMessage(exception.getMessage()));
+    }
 }

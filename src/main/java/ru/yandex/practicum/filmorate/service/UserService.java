@@ -4,6 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.EntityAlreadyExistException;
+import ru.yandex.practicum.filmorate.exception.UserHaveNotFriendsException;
 import ru.yandex.practicum.filmorate.exception.UserIsNotFriendException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
@@ -13,6 +14,7 @@ import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService  {
@@ -59,6 +61,7 @@ public class UserService  {
     public List<User> getAllUsers() {
         return inMemoryUserStorage.getAllUsers();
     }
+
     public Long addFriend(long userId, long friendId) throws EntityAlreadyExistException {
         User user = inMemoryUserStorage.getUserById(userId);
         if (!user.addFriend(friendId)) {
@@ -83,6 +86,20 @@ public class UserService  {
             users.add(inMemoryUserStorage.getUserById(id));
         }
         return users;
+    }
+
+    public List<User> getCommonFriends(long id, long otherId) throws UserHaveNotFriendsException {
+        List<User> userFriends = getAllFriends(id);
+        List<User> otherUserFriends = getAllFriends(otherId);
+        if (userFriends.isEmpty()) {
+            throw new UserHaveNotFriendsException("У пользователя с ID: " + id + " нет друзей");
+        }
+        if (otherUserFriends.isEmpty()) {
+            throw new UserHaveNotFriendsException("У пользователя с ID: " + otherId + " нет друзей");
+        }
+        return userFriends.stream()
+                .filter(getAllFriends(otherId)::contains)
+                .collect(Collectors.toList());
     }
 
 }

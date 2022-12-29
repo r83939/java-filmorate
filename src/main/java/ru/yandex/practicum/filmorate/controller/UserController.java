@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.EntityAlreadyExistException;
 import ru.yandex.practicum.filmorate.exception.UnknownUserException;
+import ru.yandex.practicum.filmorate.exception.UserHaveNotFriendsException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
 
@@ -44,9 +45,6 @@ public class UserController {
 
     @PutMapping
     public User updateUser(@Valid @RequestBody User updateUser) throws UnknownUserException {
-        if (updateUser.getEmail()==null || updateUser.getEmail().isBlank()) {
-            //throw new InvalidEmailException("Адрес электронной почты не может быть пустым.");
-        }
         User updatedUser = userService.updateUser(updateUser);
         log.trace("Изменен пользователь: {}", updatedUser);
         return updateUser;
@@ -86,7 +84,18 @@ public class UserController {
             throw new UnknownUserException("Пользователь с ID " + id+ " не существует.");
         }
         return userService.getAllFriends(id);
+    }
 
+    @GetMapping("/users/{id}/friends/common/{otherId}")
+    public List<User> getCommonFriends(@PathVariable Long id,
+                                       @PathVariable Long otherId) throws UnknownUserException, UserHaveNotFriendsException {
+        if (userService.getUserById(id) == null) {
+            throw new UnknownUserException("Пользователь с ID " + id + " не существует.");
+        }
+        if (userService.getUserById(otherId) == null) {
+            throw new UnknownUserException("Пользователь с ID " + otherId + " не существует.");
+        }
+        return userService.getCommonFriends(id, otherId);
     }
 
 

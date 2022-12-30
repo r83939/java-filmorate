@@ -2,12 +2,10 @@ package ru.yandex.practicum.filmorate.storage;
 
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.exception.EntityAlreadyExistException;
+import ru.yandex.practicum.filmorate.exception.UnknownFilmException;
 import ru.yandex.practicum.filmorate.model.User;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 @Component
 public class InMemoryUserStorage implements UserStorage{
@@ -33,11 +31,6 @@ public class InMemoryUserStorage implements UserStorage{
     public User updateUser(User user) {
         users.put(user.getEmail(), user);
         return user;
-    }
-
-    @Override
-    public User getUserById(long id) {
-        return null;
     }
 
     @Override

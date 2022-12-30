@@ -10,8 +10,6 @@ public interface UserStorage {
 
     User updateUser(User user);
 
-    User getUserById(long id);
-
     User getUserByEmail(String email);
 
     List<User> getAllUsers();

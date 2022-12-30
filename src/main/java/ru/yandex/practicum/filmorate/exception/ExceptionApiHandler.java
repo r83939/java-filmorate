@@ -10,6 +10,14 @@ import ru.yandex.practicum.filmorate.domain.ErrorMessage;
 @Slf4j
 @RestControllerAdvice
 public class ExceptionApiHandler {
+
+    @ExceptionHandler(InvalidParameterException.class)
+    public ResponseEntity<ErrorMessage> InvalidParameterException(InvalidParameterException exception) {
+        log.error(exception.getMessage(), exception);
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(new ErrorMessage(exception.getMessage()));
+    }
     @ExceptionHandler(EntityAlreadyExistException.class)
     public ResponseEntity<ErrorMessage> EntityAlreadyExistException(EntityAlreadyExistException exception) {
         log.error(exception.getMessage(), exception);

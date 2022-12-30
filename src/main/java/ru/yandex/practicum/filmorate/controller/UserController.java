@@ -5,6 +5,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.EntityAlreadyExistException;
+import ru.yandex.practicum.filmorate.exception.InvalidParameterException;
 import ru.yandex.practicum.filmorate.exception.UnknownUserException;
 import ru.yandex.practicum.filmorate.exception.UserHaveNotFriendsException;
 import ru.yandex.practicum.filmorate.model.User;
@@ -27,11 +28,16 @@ public class UserController {
         return userService.getAllUsers();
     }
 
+    @GetMapping("/{id}")
+    public User getUser(@PathVariable Long id) throws InvalidParameterException, UnknownUserException {
+        if (id <= 0) {
+            throw new InvalidParameterException("id должен быть больше 0");
+        }
+        return userService.getUserById(id);
+    }
+
     @PostMapping
     public User addUser(@Valid @RequestBody User user) throws EntityAlreadyExistException {
-        if (user.getEmail()==null || user.getEmail().isBlank()) {
-            //throw new InvalidEmailException("Адрес электронной почты не может быть пустым.");
-        }
         if (userService.getUserByEmail(user.getEmail()) != null) {
             throw new EntityAlreadyExistException("Пользователь с указанным адресом электронной почты уже был добавлен раннее");
         }
@@ -97,8 +103,5 @@ public class UserController {
         }
         return userService.getCommonFriends(id, otherId);
     }
-
-
-
 
 }

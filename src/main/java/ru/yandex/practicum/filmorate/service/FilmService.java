@@ -48,18 +48,20 @@ public class FilmService {
         return updatedFilm;
     }
 
+    public List<Film> getAllFilms() {
+        return inMemoryFilmStorage.getAllFilms();
+    }
+
     public Optional<Film> getFilmById(long filmId) throws UnknownFilmException {
-        return Optional.ofNullable(inMemoryFilmStorage.getAllFilms().stream()
+        return inMemoryFilmStorage.getAllFilms().stream()
                 .filter(f -> f.getId() == filmId)
-                .findFirst()
-                .orElseThrow(() -> new UnknownFilmException(String.format("Фильм с ID: {} не найден", filmId))));
+                .findFirst();
     }
 
     public Optional<Film> getFilmByName(String filmName) throws UnknownFilmException {
-        return Optional.ofNullable(inMemoryFilmStorage.getAllFilms().stream()
+        return inMemoryFilmStorage.getAllFilms().stream()
                 .filter(f->f.getName().equals(filmName))
-                .findFirst()
-                .orElseThrow(()-> new UnknownFilmException(String.format("Фильм с названием %s не найден", filmName))));
+                .findFirst();
     }
 
     public Optional<Film> deleteFilm(long id) {

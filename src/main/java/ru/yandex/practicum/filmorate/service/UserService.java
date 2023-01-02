@@ -6,12 +6,9 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.*;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
-import ru.yandex.practicum.filmorate.storage.UserStorage;
 
-import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -52,63 +49,67 @@ public class UserService  {
     }
 
     public User getUserById(long id) throws UnknownUserException {
-        User user = inMemoryUserStorage.getUsers().get(id);
-        if (user == null) {
-            new UnknownUserException(String.format("Пользователь с ID: %d не найден", id));
-        }
-        return user;
+        return inMemoryUserStorage.getUsers().get(id);
     }
 
-    public User getUserByEmail(String email) throws UnknownUserException {
-        User user = inMemoryUserStorage.getAllUsers().stream()
-                .filter(u -> u.getEmail() == email)
-                .findFirst()
-                .orElseThrow(() -> new UnknownUserException(String.format("Пользователь с Email: %s не найден", email)));
-        return user;
+    public Optional<User> getUserByEmail(String email) throws UnknownUserException {
+        return inMemoryUserStorage.getAllUsers().stream()
+                .filter(u -> u.getEmail().equals(email))
+                .findFirst();
     }
 
     public List<User> getAllUsers() {
         return inMemoryUserStorage.getAllUsers();
     }
 
-    public Long addFriend(long userId, long friendId) throws EntityAlreadyExistException, UnknownUserException {
-        User user = getUserById(userId);
-        if (!user.addFriend(friendId)) {
-            throw new EntityAlreadyExistException("Пользователь с ID: " + friendId + " уже является другом пользователю с ID: " + userId);
+    public boolean addFriend(long userId, long friendId) throws EntityAlreadyExistException, UnknownUserException {
+        User user1 = getUserById(userId);
+        User user2 = getUserById(friendId);
+        if (!user1.addFriend(friendId)) {
+            throw new EntityAlreadyExistException(String.format("Пользователь с ID: %d уже является другом пользователю с ID: ",friendId, userId));
         }
-        inMemoryUserStorage.updateUser(user);
-        return friendId;
+        if (!user2.addFriend(userId)) {
+            throw new EntityAlreadyExistException(String.format("Пользователь с ID: %d уже является другом пользователю с ID: ", userId, friendId));
+        }
+        inMemoryUserStorage.updateUser(user1);
+        inMemoryUserStorage.updateUser(user2);
+        return true;
     }
 
-    public Long deleteFriend(long userId, long friendId) throws UserIsNotFriendException, UnknownUserException {
-        User user = getUserById(userId);
-        if (!user.deleteFriend(friendId)) {
-            throw new UserIsNotFriendException(String.format("У пользователя ID: %d  нет друга с ID: %d" + friendId, userId));
+    public boolean deleteFriend(long userId, long friendId) throws UserIsNotFriendException, UnknownUserException {
+        User user1 = getUserById(userId);
+        User user2 = getUserById(friendId);
+        if (!user1.deleteFriend(friendId)) {
+            throw new UserIsNotFriendException(String.format("У пользователя ID: %d  нет друга с ID: %d", friendId, userId));
         }
-        inMemoryUserStorage.updateUser(user);
-        return friendId;
+        if (!user2.deleteFriend(userId)) {
+            throw new UserIsNotFriendException(String.format("У пользователя ID: %d  нет друга с ID: %d" , userId, friendId));
+        }
+        inMemoryUserStorage.updateUser(user1);
+        inMemoryUserStorage.updateUser(user2);
+        return true;
     }
 
     public List<User> getAllFriends(long userId) throws UnknownUserException {
         List<User> users = new ArrayList<>();
-        for (long id : getUserById(userId).getFriends()) {
-            users.add(getUserById(id));
+        if (getUserById(userId).getFriends() != null) {
+            for (long id : getUserById(userId).getFriends()) {
+                users.add(getUserById(id));
+            }
         }
         return users;
     }
 
     public List<User> getCommonFriends(long id, long otherId) throws UserHaveNotFriendsException, UnknownUserException {
+        List<User> commonFriends = new ArrayList<>();
         List<User> userFriends = getAllFriends(id);
         List<User> otherUserFriends = getAllFriends(otherId);
-        if (userFriends.isEmpty()) {
-            throw new UserHaveNotFriendsException(String.format("У пользователя с ID: %d нет друзей", id));
+        if (commonFriends != null && otherUserFriends != null) {
+            commonFriends =  userFriends.stream()
+                    .filter(otherUserFriends::contains)
+                    .collect(Collectors.toList());
         }
-        if (otherUserFriends.isEmpty()) {
-            throw new UserHaveNotFriendsException(String.format("У пользователя с ID: %d нет друзей", otherId));
-        }
-        return userFriends.stream()
-                .filter(getAllFriends(otherId)::contains)
-                .collect(Collectors.toList());
+        return commonFriends;
     }
 
 }

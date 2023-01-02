@@ -15,7 +15,6 @@ import javax.validation.Valid;
 import java.util.*;
 
 @RestController
-@RequestMapping("/films")
 @Slf4j
 public class FilmController {
     private final FilmService filmService;
@@ -27,26 +26,45 @@ public class FilmController {
         this.userService = userService;
     }
 
-    @PostMapping
+    @GetMapping("/films")
+    public List<Film> getFilms() {
+        return filmService.getAllFilms();
+    }
+
+    @GetMapping("/films/{id}")
+    public Optional<Film> getFilm(@PathVariable long id) throws UnknownFilmException {
+        Optional<Film> film = filmService.getFilmById(id);
+        if (film.isPresent()) {
+            return film;
+        }
+        else {
+            throw new UnknownFilmException("Нет фильм с ID:" + id);
+        }
+    }
+
+    @PostMapping("/films")
     public Film addFilm(@Valid @RequestBody Film newFilm) throws EntityAlreadyExistException, UnknownFilmException {
-        if (filmService.getFilmByName(newFilm.getName()) != null) {
+        if (filmService.getFilmByName(newFilm.getName()).isPresent()) {
             throw new EntityAlreadyExistException("Фильм с таким же названием уже был добавлен раннее");
         }
         Film createdFilm = filmService.createFilm(newFilm);
-        log.trace("Добавлен фильм: {}", createdFilm);
+        log.trace("Добавлен фильм: " + createdFilm);
         return createdFilm;
     }
 
-    @PutMapping
+    @PutMapping("/films")
     public Film updateFilm(@Valid @RequestBody Film updateFilm) throws UnknownFilmException {
+        if (!filmService.getFilmById(updateFilm.getId()).isPresent()) {
+            throw new UnknownFilmException("Фильм с ID " + updateFilm.getId() + " не существует.");
+        }
         Film updatedFilm = filmService.updateFilm(updateFilm);
-        log.trace("Обновлен фильм: {}", updatedFilm);
+        log.trace("Обновлен фильм: " + updatedFilm);
         return updatedFilm;
     }
 
     @DeleteMapping("/films/{id}")
     public Optional<Film> deleteFilm(@PathVariable long id) throws UnknownFilmException {
-        if (filmService.getFilmById(id)==null) {
+        if (filmService.getFilmById(id).isPresent()) {
             throw new UnknownFilmException("Фильм с ID " + id + " не существует.");
         }
         Optional<Film> deletedFilm = filmService.deleteFilm(id);
@@ -57,31 +75,31 @@ public class FilmController {
     @PutMapping("/films/{id}/like/{userId}")
     public Long addLike(@PathVariable Long id,
                           @PathVariable Long userId) throws UnknownUserException, UnknownFilmException, EntityAlreadyExistException {
-        if (filmService.getFilmById(id) == null) {
+        if (filmService.getFilmById(id).isPresent()) {
             throw new UnknownFilmException("Фильм с ID " + id+ " не существует.");
         }
         if (userService.getUserById(userId) == null) {
             throw new UnknownUserException("Пользователь с ID " + id+ " не существует.");
         }
         Long friendUserId =  filmService.addLike(id, userId);
-        log.trace("Пользователь с ID: {} отметил лайком фильм с ID: {}", userId, id);
+        log.trace(String.format("Пользователь с ID: %d отметил лайком фильм с ID: %d", userId, id));
         return userId;
     }
     @DeleteMapping("/films/{id}/like/{userId}")
     public Long deleteLike(@PathVariable Long id,
                         @PathVariable Long userId) throws UnknownUserException, UnknownFilmException, NoLikeException {
-        if (filmService.getFilmById(id) == null) {
-            throw new UnknownFilmException("Фильм с ID " + id+ " не существует.");
+        if (!(filmService.getFilmById(id).isPresent())) {
+            throw new UnknownFilmException("Фильм с ID " + id + " не существует.");
         }
         if (userService.getUserById(userId) == null) {
-            throw new UnknownUserException("Пользователь с ID " + id+ " не существует.");
+            throw new UnknownUserException("Пользователь с ID " + id + " не существует.");
         }
         Long friendUserId =  filmService.deleteLike(id, userId);
-        log.trace("Пользователь с ID: {} удалил лайк фильма с ID: {}", userId, id);
+        log.trace(String.format("Пользователь с ID: %d удалил лайк фильма с ID: %d ", userId, id));
         return userId;
     }
 
-    @GetMapping("/films/popular?count={count}")
+    @GetMapping("/films/popular")
     public List<Film> getTopFilms(
             @RequestParam(value = "count", defaultValue = "10", required = false) Integer count) {
         if (count <= 0) {

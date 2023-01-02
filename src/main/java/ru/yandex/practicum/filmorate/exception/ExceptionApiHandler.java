@@ -49,4 +49,13 @@ public class ExceptionApiHandler {
                 .status(HttpStatus.NOT_FOUND)
                 .body(new ErrorMessage(exception.getMessage()));
     }
+
+    @ExceptionHandler(NoLikeException.class)
+    public ResponseEntity<ErrorMessage> NoLikeException(NoLikeException exception) {
+        log.error(exception.getMessage(), exception);
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(new ErrorMessage(exception.getMessage()));
+    }
+
 }

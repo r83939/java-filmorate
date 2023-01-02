@@ -21,7 +21,8 @@ public class InMemoryFilmStorage implements FilmStorage{
 
     @Override
     public Film updateFilm(Film film) {
-        return null;
+        deleteFilm(film.getId());
+        return createFilm(film);
     }
 
     @Override
@@ -33,21 +34,9 @@ public class InMemoryFilmStorage implements FilmStorage{
         return deleteFilm;
     }
 
-
     @Override
     public List<Film> getAllFilms() {
         return films;
     }
-
-    @Override
-    public Film addLike(long filmId, long userId) {
-        return null;
-    }
-
-    @Override
-    public Film deleteLike(long filmId, long userId) {
-        return null;
-    }
-
 
 }

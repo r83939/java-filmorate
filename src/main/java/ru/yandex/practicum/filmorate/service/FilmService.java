@@ -3,6 +3,7 @@ package ru.yandex.practicum.filmorate.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.EntityAlreadyExistException;
+import ru.yandex.practicum.filmorate.exception.NoLikeException;
 import ru.yandex.practicum.filmorate.exception.UnknownFilmException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.InMemoryFilmStorage;
@@ -74,19 +75,22 @@ public class FilmService {
             }
         }
         if (!film.addLike(userId)) {
-            throw new EntityAlreadyExistException("Пользователь с ID: " + userId + " уже уже поставил лайк фильму с ID: " + filmId);
+            throw new EntityAlreadyExistException(String.format("Пользователь с ID: %d  уже уже поставил лайк фильму с ID: %d " + userId, filmId));
         }
         inMemoryFilmStorage.updateFilm(film);
         return userId;
     }
 
-    public Long deleteLike(long filmId, long userId) {
+    public Long deleteLike(long filmId, long userId) throws NoLikeException {
         Film film = new Film();
         for (Film f : inMemoryFilmStorage.getAllFilms()) {
             if (f.getId() == filmId) {
                 film = f;
                 break;
             }
+        }
+        if (!film.deleteLike(userId)) {
+            throw new NoLikeException(String.format("Пользователь с ID: %d не ставил лайк фильму с ID: %d", userId, filmId));
         }
         inMemoryFilmStorage.updateFilm(film);
         return userId;
@@ -98,5 +102,4 @@ public class FilmService {
                     return comp;
         }).limit(count).collect(Collectors.toList());
     }
-
 }

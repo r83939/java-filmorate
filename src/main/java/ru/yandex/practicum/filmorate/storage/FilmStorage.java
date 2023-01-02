@@ -13,14 +13,5 @@ public interface FilmStorage {
 
     Optional<Film> deleteFilm(long id);
 
-
     List<Film> getAllFilms();
-
-    Film addLike(long filmId, long userId);
-
-    Film deleteLike(long filmId, long userId);
-
-
-
-
 }

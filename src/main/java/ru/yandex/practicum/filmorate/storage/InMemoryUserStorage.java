@@ -8,57 +8,41 @@ import ru.yandex.practicum.filmorate.model.User;
 import java.util.*;
 
 @Component
-public class InMemoryUserStorage implements UserStorage{
-
-    private Map<String, User> users; // key = email
+public class InMemoryUserStorage implements UserStorage {
+    private Map<Long, User> users;
 
     public InMemoryUserStorage() {
         users = new TreeMap<>();
     }
 
-    public Map<String, User> getUsers(){
+    public Map<Long, User> getUsers(){
         return users;
     }
 
-
     @Override
     public User createUser(User user) {
-        users.put(user.getEmail(), user);
+        users.put(user.getId(), user);
         return user;
     }
 
     @Override
     public User updateUser(User user) {
-        users.put(user.getEmail(), user);
+        users.remove(user.getId());
+        users.put(user.getId(), user);
         return user;
     }
 
     @Override
-    public User getUserByEmail(String email) {
-        return users.get(email);
+    public User deleteUser(User user) { // Пока удаление пользователя не предусмотрено в ТЗ
+        return null;
     }
 
     @Override
     public List<User> getAllUsers() {
         List<User> userList = new ArrayList<>();
-        for (Map.Entry<String, User> entry : users.entrySet()) {
+        for (Map.Entry<Long, User> entry : users.entrySet()) {
             userList.add(entry.getValue());
         }
         return userList;
-    }
-
-    @Override
-    public User addFriend(long userId, int friendId) {
-        return null;
-    }
-
-    @Override
-    public User deleteFriend(int userId, int friendId) {
-        return null;
-    }
-
-    @Override
-    public List<User> getAllFriends(int userId) {
-        return null;
     }
 }

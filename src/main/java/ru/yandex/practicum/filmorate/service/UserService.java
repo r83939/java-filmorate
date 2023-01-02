@@ -22,7 +22,6 @@ public class UserService  {
 
     @Autowired
     public UserService(InMemoryUserStorage inMemoryUserStorage ) {
-
         this.inMemoryUserStorage = inMemoryUserStorage;
         counterId = 0;
     }
@@ -42,7 +41,6 @@ public class UserService  {
     }
 
     public User updateUser(User user) throws UnknownUserException {
-           // User u = getUserById(user.getId());
             if (getUserById(user.getId()) == null){
             throw new UnknownUserException("Нет пользователя с ID " + user.getId());
         }
@@ -54,15 +52,19 @@ public class UserService  {
     }
 
     public User getUserById(long id) throws UnknownUserException {
-        User user = inMemoryUserStorage.getAllUsers().stream()
-                .filter(u -> u.getId() == id)
-                .findFirst()
-                .orElseThrow(() -> new UnknownUserException(String.format("Фильм с ID: {} не найден", id)));
+        User user = inMemoryUserStorage.getUsers().get(id);
+        if (user == null) {
+            new UnknownUserException(String.format("Пользователь с ID: %d не найден", id));
+        }
         return user;
     }
 
-    public User getUserByEmail(String email) {
-        return inMemoryUserStorage.getUserByEmail(email);
+    public User getUserByEmail(String email) throws UnknownUserException {
+        User user = inMemoryUserStorage.getAllUsers().stream()
+                .filter(u -> u.getEmail() == email)
+                .findFirst()
+                .orElseThrow(() -> new UnknownUserException(String.format("Пользователь с Email: %s не найден", email)));
+        return user;
     }
 
     public List<User> getAllUsers() {
@@ -81,7 +83,7 @@ public class UserService  {
     public Long deleteFriend(long userId, long friendId) throws UserIsNotFriendException, UnknownUserException {
         User user = getUserById(userId);
         if (!user.deleteFriend(friendId)) {
-            throw new UserIsNotFriendException("Пользователь с ID: " + friendId + " не является другом пользователю с ID: " + userId);
+            throw new UserIsNotFriendException(String.format("У пользователя ID: %d  нет друга с ID: %d" + friendId, userId));
         }
         inMemoryUserStorage.updateUser(user);
         return friendId;
@@ -99,10 +101,10 @@ public class UserService  {
         List<User> userFriends = getAllFriends(id);
         List<User> otherUserFriends = getAllFriends(otherId);
         if (userFriends.isEmpty()) {
-            throw new UserHaveNotFriendsException("У пользователя с ID: " + id + " нет друзей");
+            throw new UserHaveNotFriendsException(String.format("У пользователя с ID: %d нет друзей", id));
         }
         if (otherUserFriends.isEmpty()) {
-            throw new UserHaveNotFriendsException("У пользователя с ID: " + otherId + " нет друзей");
+            throw new UserHaveNotFriendsException(String.format("У пользователя с ID: %d нет друзей", otherId));
         }
         return userFriends.stream()
                 .filter(getAllFriends(otherId)::contains)

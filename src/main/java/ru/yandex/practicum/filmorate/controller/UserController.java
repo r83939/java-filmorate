@@ -4,10 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exception.EntityAlreadyExistException;
-import ru.yandex.practicum.filmorate.exception.InvalidParameterException;
-import ru.yandex.practicum.filmorate.exception.UnknownUserException;
-import ru.yandex.practicum.filmorate.exception.UserHaveNotFriendsException;
+import ru.yandex.practicum.filmorate.exception.*;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
 
@@ -37,7 +34,7 @@ public class UserController {
     }
 
     @PostMapping
-    public User addUser(@Valid @RequestBody User user) throws EntityAlreadyExistException {
+    public User addUser(@Valid @RequestBody User user) throws EntityAlreadyExistException, UnknownUserException {
         if (userService.getUserByEmail(user.getEmail()) != null) {
             throw new EntityAlreadyExistException("Пользователь с указанным адресом электронной почты уже был добавлен раннее");
         }
@@ -72,15 +69,15 @@ public class UserController {
 
     @DeleteMapping("/users/{id}/friends/{friendId}")
     public Long deleteFriend(@PathVariable Long id,
-                          @PathVariable Long friendId) throws UnknownUserException, EntityAlreadyExistException {
+                          @PathVariable Long friendId) throws UnknownUserException, EntityAlreadyExistException, UserIsNotFriendException {
         if (userService.getUserById(id) == null) {
             throw new UnknownUserException("Пользователь с ID " + id+ " не существует.");
         }
         if (userService.getUserById(friendId) == null) {
             throw new UnknownUserException("Пользователь с ID " + id+ " не существует.");
         }
-        Long friendUserId =  userService. addFriend(id, friendId);
-        log.trace("Пользователь с ID: {} добавлен в друзья пользователя с ID: {}", friendUserId, id);
+        Long friendUserId =  userService.deleteFriend(id, friendId);
+        log.trace("Пользователь с ID: {} удален из друзей пользователя с ID: {}", friendUserId, id);
         return friendUserId;
     }
 
@@ -103,5 +100,4 @@ public class UserController {
         }
         return userService.getCommonFriends(id, otherId);
     }
-
 }

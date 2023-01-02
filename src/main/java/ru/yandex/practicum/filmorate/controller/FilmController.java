@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.EntityAlreadyExistException;
+import ru.yandex.practicum.filmorate.exception.NoLikeException;
 import ru.yandex.practicum.filmorate.exception.UnknownFilmException;
 import ru.yandex.practicum.filmorate.exception.UnknownUserException;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -17,7 +18,6 @@ import java.util.*;
 @RequestMapping("/films")
 @Slf4j
 public class FilmController {
-
     private final FilmService filmService;
     private final UserService userService;
 
@@ -69,7 +69,7 @@ public class FilmController {
     }
     @DeleteMapping("/films/{id}/like/{userId}")
     public Long deleteLike(@PathVariable Long id,
-                        @PathVariable Long userId) throws UnknownUserException, UnknownFilmException, EntityAlreadyExistException {
+                        @PathVariable Long userId) throws UnknownUserException, UnknownFilmException, NoLikeException {
         if (filmService.getFilmById(id) == null) {
             throw new UnknownFilmException("Фильм с ID " + id+ " не существует.");
         }
@@ -85,12 +85,9 @@ public class FilmController {
     public List<Film> getTopFilms(
             @RequestParam(value = "count", defaultValue = "10", required = false) Integer count) {
         if (count <= 0) {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("count должен быть целым числом больше 0, получено " + count);
         }
         List<Film> topFilms = filmService.getTopFilms(count);
         return topFilms;
-
     }
-
-
 }

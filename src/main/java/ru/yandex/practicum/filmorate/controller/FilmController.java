@@ -75,7 +75,7 @@ public class FilmController {
     @PutMapping("/films/{id}/like/{userId}")
     public Long addLike(@PathVariable Long id,
                           @PathVariable Long userId) throws UnknownUserException, UnknownFilmException, EntityAlreadyExistException {
-        if (filmService.getFilmById(id).isPresent()) {
+        if (!(filmService.getFilmById(id).isPresent())) {
             throw new UnknownFilmException("Фильм с ID " + id+ " не существует.");
         }
         if (userService.getUserById(userId) == null) {
@@ -83,7 +83,7 @@ public class FilmController {
         }
         Long friendUserId =  filmService.addLike(id, userId);
         log.trace(String.format("Пользователь с ID: %d отметил лайком фильм с ID: %d", userId, id));
-        return userId;
+        return friendUserId;
     }
     @DeleteMapping("/films/{id}/like/{userId}")
     public Long deleteLike(@PathVariable Long id,

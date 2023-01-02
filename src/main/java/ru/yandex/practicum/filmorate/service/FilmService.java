@@ -9,6 +9,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.InMemoryFilmStorage;
 import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -16,15 +17,13 @@ import java.util.stream.Collectors;
 @Service
 public class FilmService {
     private final InMemoryFilmStorage inMemoryFilmStorage;
-    private final InMemoryUserStorage inMemoryUserStorage;
+
 
     private long counterId;
 
     @Autowired
-    public FilmService(InMemoryFilmStorage inMemoryFilmStorage, InMemoryUserStorage inMemoryUserStorage) {
-
+    public FilmService(InMemoryFilmStorage inMemoryFilmStorage) {
         this.inMemoryFilmStorage = inMemoryFilmStorage;
-        this.inMemoryUserStorage = inMemoryUserStorage;
         counterId = 0;
     }
 
@@ -68,7 +67,7 @@ public class FilmService {
        return inMemoryFilmStorage.deleteFilm(id);
     }
 
-    public Long addLike(long filmId, long userId) throws UnknownFilmException, EntityAlreadyExistException {
+    public Long addLike(long filmId, long userId) throws EntityAlreadyExistException {
         Film film = new Film();
         for (Film f : inMemoryFilmStorage.getAllFilms()) {
             if (f.getId() == filmId) {
@@ -100,7 +99,7 @@ public class FilmService {
 
     public List<Film> getTopFilms(int count) {
         return inMemoryFilmStorage.getAllFilms().stream().sorted((f0, f1) -> {
-                    int comp = f0.getLikes().size() > f1.getLikes().size() ? +1 : f0.getLikes().size() < f1.getLikes().size() ? -1 : 0;
+                    int comp = f0.getLikes().size() > f1.getLikes().size() ? -1 : f0.getLikes().size() < f1.getLikes().size() ? +1 : 0;
                     return comp;
         }).limit(count).collect(Collectors.toList());
     }

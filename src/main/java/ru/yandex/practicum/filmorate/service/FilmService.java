@@ -17,8 +17,6 @@ import java.util.stream.Collectors;
 @Service
 public class FilmService {
     private final InMemoryFilmStorage inMemoryFilmStorage;
-
-
     private long counterId;
 
     @Autowired
@@ -98,9 +96,8 @@ public class FilmService {
     }
 
     public List<Film> getTopFilms(int count) {
-        return inMemoryFilmStorage.getAllFilms().stream().sorted((f0, f1) -> {
-                    int comp = f0.getLikes().size() > f1.getLikes().size() ? -1 : f0.getLikes().size() < f1.getLikes().size() ? +1 : 0;
-                    return comp;
-        }).limit(count).collect(Collectors.toList());
+        return inMemoryFilmStorage.getAllFilms().stream()
+                .sorted((f0, f1) -> Integer.compare(f1.getLikes().size(), f0.getLikes().size()))
+                .limit(count).collect(Collectors.toList());
     }
 }

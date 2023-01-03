@@ -111,5 +111,4 @@ public class UserService  {
         }
         return commonFriends;
     }
-
 }

@@ -38,7 +38,7 @@ public class FilmController {
             return film;
         }
         else {
-            throw new UnknownFilmException("Нет фильм с ID:" + id);
+            throw new UnknownFilmException("Нет фильма с ID:" + id);
         }
     }
 

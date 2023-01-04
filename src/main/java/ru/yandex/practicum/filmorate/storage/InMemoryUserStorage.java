@@ -1,11 +1,10 @@
 package ru.yandex.practicum.filmorate.storage;
 
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.exception.EntityAlreadyExistException;
-import ru.yandex.practicum.filmorate.exception.UnknownFilmException;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 public class InMemoryUserStorage implements UserStorage {
@@ -21,6 +20,12 @@ public class InMemoryUserStorage implements UserStorage {
 
     public User getUserById(long id) {
         return getUsers().get(id);
+    }
+
+    public Optional<User> getUserByEmail(String email) {
+        return getAllUsers().stream()
+                .filter(u -> u.getEmail().equals(email))
+                .findFirst();
     }
 
     @Override
@@ -48,5 +53,27 @@ public class InMemoryUserStorage implements UserStorage {
             userList.add(entry.getValue());
         }
         return userList;
+    }
+
+    public List<User> getAllFriends(long userId) {
+        List<User> users = new ArrayList<>();
+        if (getUserById(userId).getFriends() != null) {
+            for (long id : getUserById(userId).getFriends()) {
+                users.add(getUserById(id));
+            }
+        }
+        return users;
+    }
+
+    public List<User> getCommonFriends(long id, long otherId) {
+        List<User> commonFriends = new ArrayList<>();
+        List<User> userFriends = getAllFriends(id);
+        List<User> otherUserFriends = getAllFriends(otherId);
+        if (commonFriends != null && otherUserFriends != null) {
+            commonFriends =  userFriends.stream()
+                    .filter(otherUserFriends::contains)
+                    .collect(Collectors.toList());
+        }
+        return commonFriends;
     }
 }

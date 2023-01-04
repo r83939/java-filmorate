@@ -2,6 +2,8 @@ package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.EntityAlreadyExistException;
 import ru.yandex.practicum.filmorate.exception.NoLikeException;
@@ -59,18 +61,18 @@ public class FilmController {
     }
 
     @PutMapping("/{id}/like/{userId}")
-    public Long addLike(@PathVariable Long id,
+    public ResponseEntity addLike(@PathVariable Long id,
                           @PathVariable Long userId) throws UnknownUserException, UnknownFilmException, EntityAlreadyExistException {
-        Long friendUserId =  filmService.addLike(id, userId);
+        filmService.addLike(id, userId);
         log.trace(String.format("Пользователь с ID: %d отметил лайком фильм с ID: %d", userId, id));
-        return friendUserId;
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
     @DeleteMapping("/{id}/like/{userId}")
-    public Long deleteLike(@PathVariable Long id,
+    public ResponseEntity deleteLike(@PathVariable Long id,
                         @PathVariable Long userId) throws UnknownUserException, UnknownFilmException, NoLikeException {
-        Long friendUserId =  filmService.deleteLike(id, userId);
+        filmService.deleteLike(id, userId);
         log.trace(String.format("Пользователь с ID: %d удалил лайк фильма с ID: %d ", userId, id));
-        return userId;
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 
     @GetMapping("/popular")

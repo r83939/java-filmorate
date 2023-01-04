@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Component
 public class InMemoryFilmStorage implements FilmStorage{
@@ -58,4 +59,9 @@ public class InMemoryFilmStorage implements FilmStorage{
                 .findFirst();
     }
 
+    public List<Film> getTopFilms(int count) {
+        return getAllFilms().stream()
+                .sorted((f0, f1) -> Integer.compare(f1.getLikes().size(), f0.getLikes().size()))
+                .limit(count).collect(Collectors.toList());
+    }
 }

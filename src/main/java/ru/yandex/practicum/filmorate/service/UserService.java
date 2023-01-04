@@ -31,15 +31,24 @@ public class UserService  {
         return counterId;
     }
 
-    public User createUser(User user) {
+    public User createUser(User user) throws EntityAlreadyExistException {
+        if (getUserByEmail(user.getEmail()).isPresent()) {
+            throw new EntityAlreadyExistException("Пользователь с указанным адресом электронной почты уже был добавлен раннее");
+        }
+        if (StringUtils.isBlank(user.getName())) {
+            user.setName(user.getLogin());
+        }
         user.setId(setCounterId());
         inMemoryUserStorage.createUser(user);
         return user;
     }
 
-    public User updateUser(User user) throws UnknownUserException {
-            if (getUserById(user.getId()) == null){
+    public User updateUser(User user) throws UnknownUserException, EntityAlreadyExistException {
+        if (getUserById(user.getId()) == null) {
             throw new UnknownUserException("Нет пользователя с ID " + user.getId());
+        }
+        if (getUserByEmail(user.getEmail()).isPresent() && (getUserByEmail(user.getEmail()).get().getId() != user.getId())) {
+            throw new EntityAlreadyExistException(String.format("Пользователю нельзя назначить такой email: %s, он уже используется.", user.getEmail()));
         }
         if (StringUtils.isBlank(user.getName())) {
             user.setName(user.getLogin());
@@ -57,19 +66,24 @@ public class UserService  {
         }
     }
 
-    public Optional<User> getUserByEmail(String email) throws UnknownUserException {
-        return inMemoryUserStorage.getAllUsers().stream()
-                .filter(u -> u.getEmail().equals(email))
-                .findFirst();
+    public Optional<User> getUserByEmail(String email) {
+        return inMemoryUserStorage.getUserByEmail(email);
     }
 
     public List<User> getAllUsers() {
         return inMemoryUserStorage.getAllUsers();
     }
 
-    public boolean addFriend(long userId, long friendId) throws EntityAlreadyExistException, UnknownUserException {
+    public void addFriend(long userId, long friendId) throws EntityAlreadyExistException, UnknownUserException {
         User user1 = getUserById(userId);
         User user2 = getUserById(friendId);
+        if (user1 == null) {
+            throw new UnknownUserException("Пользователь с ID " + userId + " не существует.");
+        }
+        if (user2 == null) {
+            throw new UnknownUserException("Пользователь с ID " + friendId + " не существует.");
+        }
+
         if (!user1.addFriend(friendId)) {
             throw new EntityAlreadyExistException(String.format("Пользователь с ID: %d уже является другом пользователю с ID: ",friendId, userId));
         }
@@ -78,12 +92,17 @@ public class UserService  {
         }
         inMemoryUserStorage.updateUser(user1);
         inMemoryUserStorage.updateUser(user2);
-        return true;
     }
 
-    public boolean deleteFriend(long userId, long friendId) throws UserIsNotFriendException, UnknownUserException {
+    public void deleteFriend(long userId, long friendId) throws UserIsNotFriendException, UnknownUserException {
         User user1 = getUserById(userId);
         User user2 = getUserById(friendId);
+        if (user1 == null) {
+            throw new UnknownUserException("Пользователь с ID " + userId + " не существует.");
+        }
+        if (user2 == null) {
+            throw new UnknownUserException("Пользователь с ID " + friendId + " не существует.");
+        }
         if (!user1.deleteFriend(friendId)) {
             throw new UserIsNotFriendException(String.format("У пользователя ID: %d  нет друга с ID: %d", friendId, userId));
         }
@@ -92,28 +111,22 @@ public class UserService  {
         }
         inMemoryUserStorage.updateUser(user1);
         inMemoryUserStorage.updateUser(user2);
-        return true;
     }
 
     public List<User> getAllFriends(long userId) throws UnknownUserException {
-        List<User> users = new ArrayList<>();
-        if (getUserById(userId).getFriends() != null) {
-            for (long id : getUserById(userId).getFriends()) {
-                users.add(getUserById(id));
-            }
+        if (getUserById(userId) == null) {
+            throw new UnknownUserException("Пользователь с ID " + userId  + " не существует.");
         }
-        return users;
+        return inMemoryUserStorage.getAllFriends(userId);
     }
 
-    public List<User> getCommonFriends(long id, long otherId) throws UserHaveNotFriendsException, UnknownUserException {
-        List<User> commonFriends = new ArrayList<>();
-        List<User> userFriends = getAllFriends(id);
-        List<User> otherUserFriends = getAllFriends(otherId);
-        if (commonFriends != null && otherUserFriends != null) {
-            commonFriends =  userFriends.stream()
-                    .filter(otherUserFriends::contains)
-                    .collect(Collectors.toList());
+    public List<User> getCommonFriends(long id, long otherId) throws UnknownUserException {
+        if (getUserById(id) == null) {
+            throw new UnknownUserException("Пользователь с ID " + id + " не существует.");
         }
-        return commonFriends;
+        if (getUserById(otherId) == null) {
+            throw new UnknownUserException("Пользователь с ID " + otherId + " не существует.");
+        }
+        return inMemoryUserStorage.getCommonFriends(id, otherId);
     }
 }

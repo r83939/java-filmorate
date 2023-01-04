@@ -85,7 +85,7 @@ public class FilmService {
         }
     }
 
-    public Long addLike(long filmId, long userId) throws EntityAlreadyExistException, UnknownFilmException, UnknownUserException {
+    public void addLike(long filmId, long userId) throws EntityAlreadyExistException, UnknownFilmException, UnknownUserException {
         Film currentFilm =  getFilmById(filmId); // проверяем наличие фильма и получаем его
         User currentUser = userService.getUserById(userId); // проверяем наличие пользователя и получаем его
 
@@ -93,10 +93,9 @@ public class FilmService {
             throw new EntityAlreadyExistException(String.format("Пользователь с ID: %d  уже уже поставил лайк фильму с ID: %d " + userId, filmId));
         }
         inMemoryFilmStorage.updateFilm(currentFilm);
-        return currentFilm.getId();
     }
 
-    public Long deleteLike(long filmId, long userId) throws NoLikeException, UnknownFilmException, UnknownUserException {
+    public void deleteLike(long filmId, long userId) throws NoLikeException, UnknownFilmException, UnknownUserException {
         Film currentFilm =  getFilmById(filmId); // проверяем наличие фильма и получаем его
         User currentUser = userService.getUserById(userId); // проверяем наличие пользователя и получаем его
 
@@ -104,12 +103,9 @@ public class FilmService {
             throw new NoLikeException(String.format("Пользователь с ID: %d не ставил лайк фильму с ID: %d", userId, filmId));
         }
         inMemoryFilmStorage.updateFilm(currentFilm);
-        return currentFilm.getId();
     }
 
     public List<Film> getTopFilms(int count) {
-        return inMemoryFilmStorage.getAllFilms().stream()
-                .sorted((f0, f1) -> Integer.compare(f1.getLikes().size(), f0.getLikes().size()))
-                .limit(count).collect(Collectors.toList());
+        return inMemoryFilmStorage.getTopFilms(count);
     }
 }

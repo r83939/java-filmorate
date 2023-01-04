@@ -37,20 +37,14 @@ public class UserController {
     }
 
     @PostMapping
-    public User addUser(@Valid @RequestBody User user) throws EntityAlreadyExistException, UnknownUserException {
-        if (userService.getUserByEmail(user.getEmail()).isPresent()) {
-            throw new EntityAlreadyExistException("Пользователь с указанным адресом электронной почты уже был добавлен раннее");
-        }
-        if (StringUtils.isBlank(user.getName())) {
-            user.setName(user.getLogin());
-        }
+    public User addUser(@Valid @RequestBody User user) throws EntityAlreadyExistException {
         User createdUser = userService.createUser(user);
         log.trace("Добавлен пользователь: " + createdUser);
         return createdUser;
     }
 
     @PutMapping
-    public User updateUser(@Valid @RequestBody User updateUser) throws UnknownUserException {
+    public User updateUser(@Valid @RequestBody User updateUser) throws UnknownUserException, EntityAlreadyExistException {
         User updatedUser = userService.updateUser(updateUser);
         log.trace("Изменен пользователь: " + updatedUser);
         return updateUser;
@@ -59,34 +53,17 @@ public class UserController {
     @PutMapping("/{id}/friends/{friendId}")
     public ResponseEntity addFriend(@PathVariable Long id,
                                     @PathVariable Long friendId) throws UnknownUserException, EntityAlreadyExistException {
-        if (userService.getUserById(id) == null) {
-            throw new UnknownUserException("Пользователь с ID " + id+ " не существует.");
-        }
-        if (userService.getUserById(friendId) == null) {
-            throw new UnknownUserException("Пользователь с ID " + id+ " не существует.");
-        }
-        if (userService.addFriend(id, friendId)) {
-            log.trace(String.format("Пользователь с ID: %d добавлен в друзья пользователя с ID: %d", friendId, id));
-            return ResponseEntity.status(HttpStatus.OK).build();
-        }
-        else return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        userService.addFriend(id, friendId);
+        log.trace(String.format("Пользователь с ID: %d добавлен в друзья пользователя с ID: %d", friendId, id));
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 
     @DeleteMapping("/{id}/friends/{friendId}")
     public ResponseEntity deleteFriend(@PathVariable Long id,
                           @PathVariable Long friendId) throws UnknownUserException, UserIsNotFriendException {
-        if (userService.getUserById(id) == null) {
-            throw new UnknownUserException("Пользователь с ID " + id+ " не существует.");
-        }
-        if (userService.getUserById(friendId) == null) {
-            throw new UnknownUserException("Пользователь с ID " + id+ " не существует.");
-        }
-        if (userService.deleteFriend(id, friendId)) {
-            log.trace(String.format("Пользователь с ID: %d удален из друзей пользователя с ID: %d", friendId, id));
-            return ResponseEntity.status(HttpStatus.OK).build();
-        }
-        else return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-
+        userService.deleteFriend(id, friendId);
+        log.trace(String.format("Пользователь с ID: %d удален из друзей пользователя с ID: %d", friendId, id));
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 
     @GetMapping("/{id}/friends")
@@ -99,17 +76,7 @@ public class UserController {
 
     @GetMapping("/{id}/friends/common/{otherId}")
     public List<User> getCommonFriends(@PathVariable Long id,
-                                       @PathVariable Long otherId) throws UnknownUserException, UserHaveNotFriendsException {
-        if (userService.getUserById(id) == null) {
-            throw new UnknownUserException("Пользователь с ID " + id + " не существует.");
-        }
-        if (userService.getUserById(otherId) == null) {
-            throw new UnknownUserException("Пользователь с ID " + otherId + " не существует.");
-        }
-        List<User> commonUsers = new ArrayList<>();
-        if (userService.getCommonFriends(id, otherId) != null) {
-            commonUsers = userService.getCommonFriends(id, otherId);
-        }
-        return commonUsers;
+                                       @PathVariable Long otherId) throws UnknownUserException {
+        return userService.getCommonFriends(id, otherId);
     }
 }

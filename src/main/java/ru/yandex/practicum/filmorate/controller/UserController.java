@@ -2,69 +2,81 @@ package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exception.EntityAlreadyExistException;
-import ru.yandex.practicum.filmorate.exception.UnknownUserException;
+import ru.yandex.practicum.filmorate.exception.*;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
 
 import javax.validation.Valid;
 import java.util.*;
 
 @RestController
-@RequestMapping("/users")
 @Slf4j
+@RequestMapping("/users")
 public class UserController {
-    private int counterId;
-    private Map<Integer, User> users;
-
-    private int setCounterId() {
-        counterId++; // Инкремент счетчика id
-        return counterId;
-    }
-
-    public UserController() {
-        counterId = 0;
-        users = new TreeMap<>();
+    private final UserService userService;
+    @Autowired
+    public UserController(UserService userService) {
+        this.userService = userService;
     }
 
     @GetMapping
     public List<User> getUsers() {
-        List<User> usersList = new ArrayList<>();
-        for (Map.Entry entry : users.entrySet()) {
-            usersList.add((User) entry.getValue());
+        return userService.getAllUsers();
+    }
+
+    @GetMapping("/{id}")
+    public User getUser(@PathVariable Long id) throws InvalidParameterException, UnknownUserException {
+        if (id <= 0) {
+            throw new InvalidParameterException("id должен быть больше 0");
         }
-        return usersList;
+        return userService.getUserById(id);
     }
 
     @PostMapping
     public User addUser(@Valid @RequestBody User user) throws EntityAlreadyExistException {
-        for (Map.Entry entry : users.entrySet()) {
-            if (((User)entry.getValue()).getEmail().equals(user.getEmail())) {
-                throw new EntityAlreadyExistException("Пользователь с указанным адресом электронной почты уже был добавлен раннее");
-            }
-        }
-        int id = setCounterId();
-        user.setId(id);
-        if (StringUtils.isBlank(user.getName())) {
-            user.setName(user.getLogin());
-        }
-        users.put(id, user);
-        log.trace("Добавлен пользователь: {}", user);
-        return user;
+        User createdUser = userService.createUser(user);
+        log.trace("Добавлен пользователь: " + createdUser);
+        return createdUser;
     }
 
     @PutMapping
-    public User updateUser(@Valid @RequestBody User updateUser) throws UnknownUserException {
-        if (users.containsKey(updateUser.getId())) {
-            if (StringUtils.isBlank(updateUser.getName())) {
-                updateUser.setName(updateUser.getLogin());
-            }
-            users.put(updateUser.getId(), updateUser);
-            log.trace("Изменен пользователь: {}", updateUser);
-            return updateUser;
+    public User updateUser(@Valid @RequestBody User updateUser) throws UnknownUserException, EntityAlreadyExistException {
+        User updatedUser = userService.updateUser(updateUser);
+        log.trace("Изменен пользователь: " + updatedUser);
+        return updateUser;
+    }
+
+    @PutMapping("/{id}/friends/{friendId}")
+    public ResponseEntity addFriend(@PathVariable Long id,
+                                    @PathVariable Long friendId) throws UnknownUserException, EntityAlreadyExistException {
+        userService.addFriend(id, friendId);
+        log.trace(String.format("Пользователь с ID: %d добавлен в друзья пользователя с ID: %d", friendId, id));
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    @DeleteMapping("/{id}/friends/{friendId}")
+    public ResponseEntity deleteFriend(@PathVariable Long id,
+                          @PathVariable Long friendId) throws UnknownUserException, UserIsNotFriendException {
+        userService.deleteFriend(id, friendId);
+        log.trace(String.format("Пользователь с ID: %d удален из друзей пользователя с ID: %d", friendId, id));
+        return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    @GetMapping("/{id}/friends")
+    public List<User> getAllFriends(@PathVariable Long id) throws UnknownUserException {
+        if (userService.getUserById(id) == null) {
+            throw new UnknownUserException("Пользователь с ID " + id+ " не существует.");
         }
-        else {
-            throw new UnknownUserException("Пользователь с указанным id не был найден");
-        }
+        return userService.getAllFriends(id);
+    }
+
+    @GetMapping("/{id}/friends/common/{otherId}")
+    public List<User> getCommonFriends(@PathVariable Long id,
+                                       @PathVariable Long otherId) throws UnknownUserException {
+        return userService.getCommonFriends(id, otherId);
     }
 }

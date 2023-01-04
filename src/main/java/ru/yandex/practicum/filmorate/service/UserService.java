@@ -49,7 +49,12 @@ public class UserService  {
     }
 
     public User getUserById(long id) throws UnknownUserException {
-        return inMemoryUserStorage.getUsers().get(id);
+        if (inMemoryUserStorage.getUserById(id) != null) {
+            return inMemoryUserStorage.getUserById(id);
+        }
+        else {
+            throw new UnknownUserException("Не найден пользователь с ID: " + id);
+        }
     }
 
     public Optional<User> getUserByEmail(String email) throws UnknownUserException {

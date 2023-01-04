@@ -5,11 +5,11 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.EntityAlreadyExistException;
 import ru.yandex.practicum.filmorate.exception.NoLikeException;
 import ru.yandex.practicum.filmorate.exception.UnknownFilmException;
+import ru.yandex.practicum.filmorate.exception.UnknownUserException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.InMemoryFilmStorage;
-import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -17,11 +17,13 @@ import java.util.stream.Collectors;
 @Service
 public class FilmService {
     private final InMemoryFilmStorage inMemoryFilmStorage;
+    private final UserService userService;
     private long counterId;
 
     @Autowired
-    public FilmService(InMemoryFilmStorage inMemoryFilmStorage) {
+    public FilmService(InMemoryFilmStorage inMemoryFilmStorage, UserService userService) {
         this.inMemoryFilmStorage = inMemoryFilmStorage;
+        this.userService = userService;
         counterId = 0;
     }
 
@@ -34,13 +36,19 @@ public class FilmService {
         return counterId;
     }
 
-    public Film createFilm(Film film) {
-        film.setId(setCounterId());
-        inMemoryFilmStorage.createFilm(film);
-        return film;
+    public Film createFilm(Film film) throws  EntityAlreadyExistException {
+        if (inMemoryFilmStorage.getFilmByName(film.getName()).isPresent()) {
+            throw new EntityAlreadyExistException("Уже есть фильм с названием: " + film.getId());
+        }
+        else {
+            film.setId(setCounterId());
+            inMemoryFilmStorage.createFilm(film);
+            return film;
+        }
     }
 
-    public Film updateFilm(Film film) {
+    public Film updateFilm(Film film) throws UnknownFilmException {
+        Film currentFilm =  getFilmById(film.getId()); // проверяем, существует фильм, который хотим обновить
         Film updatedFilm = inMemoryFilmStorage.updateFilm(film);
         return updatedFilm;
     }
@@ -49,50 +57,54 @@ public class FilmService {
         return inMemoryFilmStorage.getAllFilms();
     }
 
-    public Optional<Film> getFilmById(long filmId) throws UnknownFilmException {
-        return inMemoryFilmStorage.getAllFilms().stream()
-                .filter(f -> f.getId() == filmId)
-                .findFirst();
-    }
-
-    public Optional<Film> getFilmByName(String filmName) throws UnknownFilmException {
-        return inMemoryFilmStorage.getAllFilms().stream()
-                .filter(f->f.getName().equals(filmName))
-                .findFirst();
-    }
-
-    public Optional<Film> deleteFilm(long id) {
-       return inMemoryFilmStorage.deleteFilm(id);
-    }
-
-    public Long addLike(long filmId, long userId) throws EntityAlreadyExistException {
-        Film film = new Film();
-        for (Film f : inMemoryFilmStorage.getAllFilms()) {
-            if (f.getId() == filmId) {
-               film = f;
-               break;
-            }
+    public Film getFilmById(long filmId) throws UnknownFilmException {
+        if (inMemoryFilmStorage.getFilmById(filmId).isPresent()) {
+            return inMemoryFilmStorage.getFilmById(filmId).get();
         }
-        if (!film.addLike(userId)) {
+        else {
+            throw new UnknownFilmException("Нет фильма с ID:" + filmId);
+        }
+    }
+
+    public Film getFilmByName(String filmName) throws UnknownFilmException {
+        if (inMemoryFilmStorage.getFilmByName(filmName).isPresent()) {
+            return inMemoryFilmStorage.getFilmByName(filmName).get();
+        }
+        else {
+            throw new UnknownFilmException("Нет фильма c названием:" + filmName);
+        }
+    }
+
+    public Film deleteFilm(long id) throws UnknownFilmException {
+        Film deletedFilm =  getFilmById(id); // проверяем существует ли фильм, который хотим удалить
+        if (inMemoryFilmStorage.deleteFilm(id).isPresent()) {
+            return inMemoryFilmStorage.deleteFilm(id).get();
+        }
+        else {
+            throw new UnknownFilmException("Произошла ошибка при удалении фильма с ID:" + id);
+        }
+    }
+
+    public Long addLike(long filmId, long userId) throws EntityAlreadyExistException, UnknownFilmException, UnknownUserException {
+        Film currentFilm =  getFilmById(filmId); // проверяем наличие фильма и получаем его
+        User currentUser = userService.getUserById(userId); // проверяем наличие пользователя и получаем его
+
+        if (!currentFilm.addLike(userId)) {
             throw new EntityAlreadyExistException(String.format("Пользователь с ID: %d  уже уже поставил лайк фильму с ID: %d " + userId, filmId));
         }
-        inMemoryFilmStorage.updateFilm(film);
-        return userId;
+        inMemoryFilmStorage.updateFilm(currentFilm);
+        return currentFilm.getId();
     }
 
-    public Long deleteLike(long filmId, long userId) throws NoLikeException {
-        Film film = new Film();
-        for (Film f : inMemoryFilmStorage.getAllFilms()) {
-            if (f.getId() == filmId) {
-                film = f;
-                break;
-            }
-        }
-        if (!film.deleteLike(userId)) {
+    public Long deleteLike(long filmId, long userId) throws NoLikeException, UnknownFilmException, UnknownUserException {
+        Film currentFilm =  getFilmById(filmId); // проверяем наличие фильма и получаем его
+        User currentUser = userService.getUserById(userId); // проверяем наличие пользователя и получаем его
+
+        if (!currentFilm.deleteLike(userId)) {
             throw new NoLikeException(String.format("Пользователь с ID: %d не ставил лайк фильму с ID: %d", userId, filmId));
         }
-        inMemoryFilmStorage.updateFilm(film);
-        return userId;
+        inMemoryFilmStorage.updateFilm(currentFilm);
+        return currentFilm.getId();
     }
 
     public List<Film> getTopFilms(int count) {

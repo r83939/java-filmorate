@@ -15,6 +15,7 @@ import java.util.*;
 
 @RestController
 @Slf4j
+@RequestMapping("/users")
 public class UserController {
     private final UserService userService;
     @Autowired
@@ -22,24 +23,20 @@ public class UserController {
         this.userService = userService;
     }
 
-    @GetMapping("/users")
+    @GetMapping
     public List<User> getUsers() {
         return userService.getAllUsers();
     }
 
-    @GetMapping("/users/{id}")
+    @GetMapping("/{id}")
     public User getUser(@PathVariable Long id) throws InvalidParameterException, UnknownUserException {
         if (id <= 0) {
             throw new InvalidParameterException("id должен быть больше 0");
         }
-        User user = userService.getUserById(id);
-        if (user == null) {
-            throw new UnknownUserException("Пользователь с ID " + id+ " не существует.");
-        }
-        return user;
+        return userService.getUserById(id);
     }
 
-    @PostMapping("/users")
+    @PostMapping
     public User addUser(@Valid @RequestBody User user) throws EntityAlreadyExistException, UnknownUserException {
         if (userService.getUserByEmail(user.getEmail()).isPresent()) {
             throw new EntityAlreadyExistException("Пользователь с указанным адресом электронной почты уже был добавлен раннее");
@@ -52,14 +49,14 @@ public class UserController {
         return createdUser;
     }
 
-    @PutMapping("/users")
+    @PutMapping
     public User updateUser(@Valid @RequestBody User updateUser) throws UnknownUserException {
         User updatedUser = userService.updateUser(updateUser);
         log.trace("Изменен пользователь: " + updatedUser);
         return updateUser;
     }
 
-    @PutMapping("/users/{id}/friends/{friendId}")
+    @PutMapping("/{id}/friends/{friendId}")
     public ResponseEntity addFriend(@PathVariable Long id,
                                     @PathVariable Long friendId) throws UnknownUserException, EntityAlreadyExistException {
         if (userService.getUserById(id) == null) {
@@ -75,7 +72,7 @@ public class UserController {
         else return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
     }
 
-    @DeleteMapping("/users/{id}/friends/{friendId}")
+    @DeleteMapping("/{id}/friends/{friendId}")
     public ResponseEntity deleteFriend(@PathVariable Long id,
                           @PathVariable Long friendId) throws UnknownUserException, UserIsNotFriendException {
         if (userService.getUserById(id) == null) {
@@ -92,7 +89,7 @@ public class UserController {
 
     }
 
-    @GetMapping("/users/{id}/friends")
+    @GetMapping("/{id}/friends")
     public List<User> getAllFriends(@PathVariable Long id) throws UnknownUserException {
         if (userService.getUserById(id) == null) {
             throw new UnknownUserException("Пользователь с ID " + id+ " не существует.");
@@ -100,7 +97,7 @@ public class UserController {
         return userService.getAllFriends(id);
     }
 
-    @GetMapping("/users/{id}/friends/common/{otherId}")
+    @GetMapping("/{id}/friends/common/{otherId}")
     public List<User> getCommonFriends(@PathVariable Long id,
                                        @PathVariable Long otherId) throws UnknownUserException, UserHaveNotFriendsException {
         if (userService.getUserById(id) == null) {

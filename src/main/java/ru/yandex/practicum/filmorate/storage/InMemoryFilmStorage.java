@@ -23,7 +23,7 @@ public class InMemoryFilmStorage implements FilmStorage{
 
     @Override
     public Film updateFilm(Film film) {
-        Optional<Film> f = deleteFilm(film.getId());
+        deleteFilm(film.getId());
         return createFilm(film);
     }
 
@@ -44,6 +44,18 @@ public class InMemoryFilmStorage implements FilmStorage{
     @Override
     public List<Film> getAllFilms() {
         return films;
+    }
+
+    public Optional<Film> getFilmById(long filmId) {
+        return films.stream()
+                .filter(f -> f.getId() == filmId)
+                .findFirst();
+    }
+
+    public Optional<Film> getFilmByName(String filmName) {
+        return getAllFilms().stream()
+                .filter(f->f.getName().equals(filmName))
+                .findFirst();
     }
 
 }

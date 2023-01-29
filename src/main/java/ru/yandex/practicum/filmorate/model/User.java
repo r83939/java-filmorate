@@ -9,9 +9,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import ru.yandex.practicum.filmorate.validator.Login;
 
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import javax.validation.constraints.*;
 
 @Getter
@@ -31,19 +29,19 @@ public class User {
     @Past(message = "Incorrect date birthday")
     private LocalDate birthday;
 
-    private Set<Long> friends;
+    private Map<Long,Boolean> friends; // Запросы дружбы отправленные пользователем, и подтвержденные они или нет
 
     public User() {
         this.id = 0;
-        this.friends = new HashSet<>();
+        this.friends = new HashMap<>();
     }
 
-    public Set<Long> getFriends() {
+    public Map<Long, Boolean> getFriends() {
         return friends;
     }
 
     public boolean addFriend(Long id) {
-        return  friends.add(id);
+        return  friends.put(id, true);
     }
 
     public boolean deleteFriend(Long id) {

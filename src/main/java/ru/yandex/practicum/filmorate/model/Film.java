@@ -34,6 +34,10 @@ public class Film {
     @Positive
     private int duration;
 
+    private String genre;
+
+    private String mpa;
+
     private Set<Long> likes;
 
     public Film() {

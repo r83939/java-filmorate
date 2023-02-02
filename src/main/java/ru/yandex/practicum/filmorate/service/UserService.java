@@ -49,6 +49,7 @@ public class UserService  {
         if (StringUtils.isBlank(user.getName())) {
             user.setName(user.getLogin());
         }
+
         User updatedUser = inMemoryUserStorage.updateUser(user);
         return updatedUser;
     }

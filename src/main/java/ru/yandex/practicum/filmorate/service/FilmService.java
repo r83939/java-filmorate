@@ -19,7 +19,7 @@ public class FilmService {
 
     private long counterId;
 
-    @Autowired
+    //  @Autowired
     public FilmService(InMemoryFilmStorage inMemoryFilmStorage, InMemoryUserStorage inMemoryUserStorage) {
 
         this.inMemoryFilmStorage = inMemoryFilmStorage;

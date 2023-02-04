@@ -6,7 +6,9 @@ import org.springframework.format.annotation.DateTimeFormat;
 import ru.yandex.practicum.filmorate.validator.Login;
 
 import java.time.LocalDate;
+import java.util.Map;
 import java.util.Set;
+import javax.persistence.OneToMany;
 import javax.validation.constraints.*;
 
 @Data
@@ -24,16 +26,23 @@ public class User {
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     @Past(message = "Incorrect date birthday")
     private LocalDate birthday;
+    private Map<Long, Boolean> friends;
 
-    private Set<Long> friends;
+    public User(long id, String email, String login, String name, LocalDate birthday, Map<Long, Boolean> friends) {
+        this.id = id;
+        this.email = email;
+        this.login = login;
+        this.name = name;
+        this.friends=friends;
+    //
+    }
 
-    public boolean addFriend(Long id) {
-        return  friends.add(id);
+
+    public boolean addFriend(Long id, boolean isConfirmed) {
+        return  friends.put(id,isConfirmed);
     }
 
     public boolean deleteFriend(Long id) {
         return  friends.remove(id);
     }
-
-
 }

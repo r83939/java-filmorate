@@ -39,6 +39,11 @@ public class InMemoryUserStorage implements UserStorage{
     }
 
     @Override
+    public User getUserById(Long id) {
+        return null;
+    }
+
+    @Override
     public List<User> getAllUsers() {
         List<User> userList = new ArrayList<>();
         for (Map.Entry<String, User> entry : users.entrySet()) {

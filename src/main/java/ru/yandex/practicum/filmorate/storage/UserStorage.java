@@ -12,6 +12,8 @@ public interface UserStorage {
 
     User getUserByEmail(String email);
 
+    User getUserById(Long id);
+
     List<User> getAllUsers();
 
     User addFriend(long userId, int friendId);

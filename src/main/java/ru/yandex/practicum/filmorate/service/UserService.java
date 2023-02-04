@@ -8,6 +8,7 @@ import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
+import javax.swing.plaf.basic.BasicButtonUI;
 import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.List;
@@ -72,7 +73,16 @@ public class UserService  {
 
     public Long addFriend(long userId, long friendId) throws EntityAlreadyExistException, UnknownUserException {
         User user = getUserById(userId);
-        if (!user.addFriend(friendId)) {
+        if (!user.addFriend(friendId, false)) {
+            throw new EntityAlreadyExistException("Пользователь с ID: " + friendId + " уже является другом пользователю с ID: " + userId);
+        }
+        inMemoryUserStorage.updateUser(user);
+        return friendId;
+    }
+
+    public Long friendConfirmation(long userId, long friendId) throws UnknownUserException, EntityAlreadyExistException {
+        User user = getUserById(userId);
+        if (!user.addFriend(friendId, false)) {
             throw new EntityAlreadyExistException("Пользователь с ID: " + friendId + " уже является другом пользователю с ID: " + userId);
         }
         inMemoryUserStorage.updateUser(user);
@@ -90,8 +100,8 @@ public class UserService  {
 
     public List<User> getAllFriends(long userId) throws UnknownUserException {
         List<User> users = new ArrayList<>();
-        for (long id : getUserById(userId).getFriends()) {
-            users.add(getUserById(id));
+        for (Map.Entry<Long, Boolean> entry : getUserById(userId).getFriends().entrySet()) {
+            users.add(getUserById(entry.getKey()));
         }
         return users;
     }

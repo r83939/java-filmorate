@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exception.*;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserDbService;
 import ru.yandex.practicum.filmorate.service.UserService;
 
 import javax.validation.Valid;
@@ -17,9 +18,9 @@ import java.util.*;
 @Slf4j
 @RequestMapping("/users")
 public class UserController {
-    private final UserService userService;
+    private final UserDbService userService;
     @Autowired
-    public UserController(UserService userService) {
+    public UserController(UserDbService userService) {
         this.userService = userService;
     }
 

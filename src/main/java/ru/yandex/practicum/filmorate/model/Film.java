@@ -33,7 +33,6 @@ public class Film {
     private int duration;
 
     private Long mpa;
-
     private Set<Long> genres;
     private Set<Long> likes;
 
@@ -58,7 +57,6 @@ public class Film {
     public boolean deleteGenre(Long id) {
         return  genres.remove(id);
     }
-
 
     @Override
     public boolean equals(Object o) {

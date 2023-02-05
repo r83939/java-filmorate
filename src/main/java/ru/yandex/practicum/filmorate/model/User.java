@@ -9,9 +9,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import ru.yandex.practicum.filmorate.validator.Login;
 
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import javax.validation.constraints.*;
 
 @Getter
@@ -30,20 +28,30 @@ public class User {
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     @Past(message = "Incorrect date birthday")
     private LocalDate birthday;
+    private Map<Long, Boolean> friends;
 
-    private Set<Long> friends;
+
 
     public User() {
         this.id = 0;
-        this.friends = new HashSet<>();
+        this.friends = new HashMap<>();
     }
 
-    public Set<Long> getFriends() {
+    public User(long id, String email, String login, String name, LocalDate birthday, Map<Long, Boolean> friends) {
+        this.id = id;
+        this.email = email;
+        this.login = login;
+        this.name = name;
+        this.birthday = birthday;
+        this.friends = friends;
+    }
+
+    public Map<Long, Boolean> getFriends() {
         return friends;
     }
 
-    public boolean addFriend(Long id) {
-        return  friends.add(id);
+    public boolean addFriend(Long id, boolean isFriendConfirm) {
+        return  friends.put(id, isFriendConfirm);
     }
 
     public boolean deleteFriend(Long id) {

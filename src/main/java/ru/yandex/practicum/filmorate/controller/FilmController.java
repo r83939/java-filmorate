@@ -10,6 +10,8 @@ import ru.yandex.practicum.filmorate.exception.NoLikeException;
 import ru.yandex.practicum.filmorate.exception.UnknownFilmException;
 import ru.yandex.practicum.filmorate.exception.UnknownUserException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.UserService;
 
@@ -84,4 +86,30 @@ public class FilmController {
         List<Film> topFilms = filmService.getTopFilms(count);
         return topFilms;
     }
+
+    @GetMapping("/genres")
+    public List<Genre> getAllGenres() {
+        return null;
+
+    }
+
+    @GetMapping("/genres/{id}")
+    public Genre getGenreById(@PathVariable long id) {
+        return null;
+
+    }
+
+    @GetMapping("/mpa")
+    public List<Mpa> getAllMpa() {
+        return null;
+
+    }
+
+    @GetMapping("/mpa/{id}")
+    public Mpa getMpaById(@PathVariable long id) {
+        return null;
+
+    }
+
+
 }

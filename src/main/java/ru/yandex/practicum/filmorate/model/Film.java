@@ -11,9 +11,7 @@ import ru.yandex.practicum.filmorate.validator.MinDateRelease;
 import javax.validation.constraints.*;
 import java.time.Duration;
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 @Getter
 @Setter
@@ -34,11 +32,15 @@ public class Film {
     @Positive
     private int duration;
 
+    private Long mpa;
+
+    private Set<Long> genres;
     private Set<Long> likes;
 
     public Film() {
         this.id = 0;
         this.likes = new HashSet<>();
+        this.genres = new HashSet<>();
     }
 
     public boolean addLike(Long id) {
@@ -48,6 +50,15 @@ public class Film {
     public boolean deleteLike(Long id) {
         return  likes.remove(id);
     }
+
+    public boolean addGenre(Long id) {
+        return  genres.add(id);
+    }
+
+    public boolean deleteGenre(Long id) {
+        return  genres.remove(id);
+    }
+
 
     @Override
     public boolean equals(Object o) {

@@ -11,6 +11,7 @@ import ru.yandex.practicum.filmorate.validator.MinDateRelease;
 import javax.validation.constraints.*;
 import java.time.Duration;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Set;
 
 @Data
@@ -30,6 +31,10 @@ public class Film {
     @NotNull
     @Positive
     private int duration;
+
+    private String mpa;
+
+    private List<String> genre;
 
     private Set<Long> likes;
 

@@ -9,6 +9,7 @@ import ru.yandex.practicum.filmorate.exception.InvalidParameterException;
 import ru.yandex.practicum.filmorate.exception.UnknownUserException;
 import ru.yandex.practicum.filmorate.exception.UserHaveNotFriendsException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserDbService;
 import ru.yandex.practicum.filmorate.service.UserService;
 
 import javax.validation.Valid;
@@ -18,10 +19,10 @@ import java.util.*;
 @RequestMapping("/users")
 @Slf4j
 public class UserController {
-    private final UserService userService;
+    private final UserDbService userService;
     @Autowired
-    public UserController(UserService userService) {
-        this.userService = userService;
+    public UserController( UserDbService userDbService) {
+        this.userService = userDbService;
     }
     @GetMapping
     public List<User> getUsers() {

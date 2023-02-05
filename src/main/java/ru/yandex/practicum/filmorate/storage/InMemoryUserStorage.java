@@ -53,8 +53,8 @@ public class InMemoryUserStorage implements UserStorage{
     }
 
     @Override
-    public User addFriend(long userId, int friendId) {
-        return null;
+    public boolean addFriend(long userId, int friendId) {
+        return true;
     }
 
     @Override

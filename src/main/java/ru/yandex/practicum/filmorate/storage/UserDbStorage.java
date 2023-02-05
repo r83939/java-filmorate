@@ -1,18 +1,13 @@
 package ru.yandex.practicum.filmorate.storage;
 
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.User;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Component
 @Slf4j
@@ -26,27 +21,54 @@ public class UserDbStorage implements UserStorage{
 
     @Override
     public User createUser(User user) {
-        return null;
+        String sqlQuery = "insert into users(email, login, name, birthday) " +
+                "values (?, ?, ?, ?)";
+        jdbcTemplate.update(sqlQuery,
+                user.getEmail(),
+                user.getLogin(),
+                user.getName(),
+                user.getBirthday());
+        return user;
     }
 
     @Override
     public User updateUser(User user) {
-        return null;
+        String sqlQuery = "update users set email=?, login=?, name=?, birthday=? where user_id=?";
+        int numberOfRowsAffected = jdbcTemplate.update(sqlQuery,
+                user.getEmail(),
+                user.getLogin(),
+                user.getName(),
+                user.getBirthday(),
+                user.getId());
+        return user;
     }
 
     @Override
     public User getUserByEmail(String email) {
-        return null;
+        SqlRowSet userRows = jdbcTemplate.queryForRowSet("select * from users where email = ?", email);
+        if(userRows.next()) {
+            log.info("Найден пользователь: {} {}", userRows.getString("user_id"), userRows.getString("name"));
+            User user = new User(
+                    userRows.getLong("user_id"),
+                    userRows.getString("email"),
+                    userRows.getString("login"),
+                    userRows.getString("name"),
+                    userRows.getDate("birthday").toLocalDate(),
+                    getUserFriends(userRows.getLong("user_id")));
+            return user;
+        } else {
+            log.info("Пользователь с email {} не найден.", email);
+            return null;
+        }
     }
 
     @Override
     public User getUserById(Long id) {
-        SqlRowSet userRows = jdbcTemplate.queryForRowSet("select * from users where id = ?", id);
+        SqlRowSet userRows = jdbcTemplate.queryForRowSet("select * from users where user_id = ?", id);
         if(userRows.next()) {
-            log.info("Найден пользователь: {} {}", userRows.getString("id"), userRows.getString("nickname"));
-            // вы заполните данные пользователя в следующем уроке
+            log.info("Найден пользователь: {} {}", userRows.getString("user_id"), userRows.getString("name"));
             User user = new User(
-                    userRows.getLong("id"),
+                    userRows.getLong("user_id"),
                     userRows.getString("email"),
                     userRows.getString("login"),
                     userRows.getString("name"),
@@ -58,6 +80,18 @@ public class UserDbStorage implements UserStorage{
             return null;
         }
     }
+    public User deleteUserById(Long id) {
+        User user = getUserById(id);
+        if(user != null) {
+            String sqlQuery = "delete from users where user_id = ?";
+            int numberOfRowAffected = jdbcTemplate.update(sqlQuery, id);
+            if (numberOfRowAffected > 0) {
+                return user;
+            }
+            else return null;
+        }
+        else return null;
+    }
 
     public Map<Long, Boolean> getUserFriends(Long userId) {
         Map<Long, Boolean> userFriends = new HashMap<>();
@@ -66,21 +100,44 @@ public class UserDbStorage implements UserStorage{
             userFriends.put(friendsRows.getLong("friend_id"), friendsRows.getBoolean("friendship_confirm"));
         }
         return userFriends;
-
     }
-
-
-
 
     @Override
     public List<User> getAllUsers() {
-        return null;
+        List<User> users = new ArrayList<>();
+        String sql = "SELECT * FROM users";
+        return jdbcTemplate.query( sql,
+                (rs, rowNum) ->
+                    new User(
+                    rs.getLong("user_id"),
+                    rs.getString("email"),
+                    rs.getString("login"),
+                    rs.getString("name"),
+                    rs.getDate("birthday").toLocalDate(),
+                    getUserFriends(rs.getLong("user_id"))));
     }
 
-    @Override
-    public User addFriend(long userId, int friendId) {
-        return null;
+    public boolean addFriend(long userId, int friendId) {
+        String sqlQuery = "insert into userfriends (user_id, friend_id, friendship_confirm) " +
+                "values (?, ?, ?)";
+        return jdbcTemplate.update(sqlQuery,
+                userId,
+                friendId,
+                "FALSE") > 0;
     }
+
+    public int confirmFriendShip(long userId, int friendId) {
+        String sqlQuery = "UPDATE USERFRIENDS SET friendship_confirm=? WHERE USER_ID=? AND FRIEND_ID=? ";
+        int numberOfRowsAffected = jdbcTemplate.update(sqlQuery,
+                "TRUE",
+                      userId,
+                      friendId);
+        return numberOfRowsAffected;
+    }
+
+
+
+
 
     @Override
     public User deleteFriend(int userId, int friendId) {

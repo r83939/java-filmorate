@@ -32,7 +32,7 @@ public class Film {
     @Positive
     private int duration;
 
-    private Long mpa;
+    private String mpa;
     private Set<Long> genres;
     private Set<Long> likes;
 
@@ -40,6 +40,17 @@ public class Film {
         this.id = 0;
         this.likes = new HashSet<>();
         this.genres = new HashSet<>();
+    }
+
+    public Film(long id, String name, String description, LocalDate releaseDate, int duration, String mpa, Set<Long> genres, Set<Long> likes) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.releaseDate = releaseDate;
+        this.duration = duration;
+        this.mpa = mpa;
+        this.genres = genres;
+        this.likes = likes;
     }
 
     public boolean addLike(Long id) {

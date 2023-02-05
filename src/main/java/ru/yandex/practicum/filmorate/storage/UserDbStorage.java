@@ -23,24 +23,28 @@ public class UserDbStorage implements UserStorage {
     public User createUser(User user) {
         String sqlQuery = "insert into users(email, login, name, birthday) " +
                 "values (?, ?, ?, ?)";
-        jdbcTemplate.update(sqlQuery,
+        if (jdbcTemplate.update(sqlQuery,
                 user.getEmail(),
                 user.getLogin(),
                 user.getName(),
-                user.getBirthday());
-        return user;
+                user.getBirthday()) > 0) {
+            return user;
+        }
+        return null;
     }
 
     @Override
     public User updateUser(User user) {
         String sqlQuery = "update users set email=?, login=?, name=?, birthday=? where user_id=?";
-        int numberOfRowsAffected = jdbcTemplate.update(sqlQuery,
+        if(jdbcTemplate.update(sqlQuery,
                 user.getEmail(),
                 user.getLogin(),
                 user.getName(),
                 user.getBirthday(),
-                user.getId());
-        return user;
+                user.getId()) > 0) {
+            return user;
+        }
+        return null;
     }
 
     @Override
@@ -56,7 +60,8 @@ public class UserDbStorage implements UserStorage {
     }
 
     public User getUserById (Long id) {
-        SqlRowSet userRows = jdbcTemplate.queryForRowSet("select * from users where user_id = ?", id);
+        String sqlQuery = "SELECT * FROM USERS WHERE user_id = ?";
+        SqlRowSet userRows = jdbcTemplate.queryForRowSet(sqlQuery, id);
         if (userRows.next()) {
             log.info("Найден пользователь: {} {}", userRows.getString("user_id"), userRows.getString("name"));
             User user = new User(
@@ -86,7 +91,7 @@ public class UserDbStorage implements UserStorage {
                     getUserFriends(userRows.getLong("user_id"))));
             return user;
         } else {
-            log.info("Пользователь с emal {} не найден.", email);
+            log.info("Пользователь с email {} не найден.", email);
             return null;
         }
     }
@@ -105,7 +110,7 @@ public class UserDbStorage implements UserStorage {
     public Map<Long, Boolean> getUserFriends (Long userId) {
         Map<Long, Boolean> userFriends = new HashMap<>();
         SqlRowSet friendsRows = jdbcTemplate.queryForRowSet("select * from userfriends where user_id = ?", userId);
-        if (friendsRows.next()) {
+        while (friendsRows.next()) {
             userFriends.put(friendsRows.getLong("friend_id"), friendsRows.getBoolean("friendship_confirm"));
         }
         return userFriends;
@@ -113,7 +118,6 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public List<User> getAllUsers () {
-        List<User> users = new ArrayList<>();
         String sql = "SELECT * FROM users";
         return jdbcTemplate.query(sql,
                 (rs, rowNum) ->

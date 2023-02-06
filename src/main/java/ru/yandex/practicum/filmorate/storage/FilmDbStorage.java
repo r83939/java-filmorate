@@ -3,8 +3,10 @@ package ru.yandex.practicum.filmorate.storage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
@@ -13,29 +15,27 @@ import ru.yandex.practicum.filmorate.model.User;
 import java.sql.ResultSet;
 import java.util.*;
 
-@Component
+@Repository
 @Slf4j
 public class FilmDbStorage implements FilmStorage {
     private final JdbcTemplate jdbcTemplate;
+    private final SimpleJdbcInsert insertIntoFilm;
 
     @Autowired
     public FilmDbStorage(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
+        insertIntoFilm = new SimpleJdbcInsert(this.jdbcTemplate).withTableName("films").usingGeneratedKeyColumns("film_id");
     }
 
     @Override
     public Film createFilm(Film film) {
-        String sqlQuery = "INSERT INTO FILMS (name, description, releaseDate, duration, mpa) " +
-                "values (?, ?, ?, ?, ?)";
-        if (jdbcTemplate.update(sqlQuery,
-                film.getName(),
-                film.getDescription(),
-                film.getReleaseDate(),
-                film.getDuration(),
-                film.getMpa()) > 0) {
-            return film;
-        }
-        return null;
+        final Map<String, Object> parameters = new HashMap<>();
+        parameters.put("name", film.getName());
+        parameters.put("description", film.getDescription());
+        parameters.put("release_date", film.getReleaseDate());
+        parameters.put("mpa", film.getMpa());
+        Long filmId = (Long) insertIntoFilm.executeAndReturnKey(parameters);
+        return getFilmById(filmId);
     }
 
     @Override
@@ -75,7 +75,7 @@ public class FilmDbStorage implements FilmStorage {
                     filmRows.getString("description"),
                     filmRows.getDate("release_date").toLocalDate(),
                     filmRows.getInt("duration"),
-                    filmRows.getString("mpa"),
+                    filmRows.getLong("mpa"),
                     getGenres(id),
                     getLikes(id));
             return film;
@@ -106,7 +106,7 @@ public class FilmDbStorage implements FilmStorage {
                                 rs.getString("description"),
                                 rs.getDate("release_date").toLocalDate(),
                                 rs.getInt("duration"),
-                                getMpaByFilmId(rs.getLong("film_id")),
+                                rs.getLong("mpa"),
                                 getGenres(rs.getLong("user_id")),
                                 getLikes(rs.getLong("user_id"))));
     }
@@ -165,7 +165,7 @@ public class FilmDbStorage implements FilmStorage {
                                 rs.getString("description"),
                                 rs.getDate("release_date").toLocalDate(),
                                 rs.getInt("duration"),
-                                getMpaByFilmId(rs.getLong("film_id")),
+                                rs.getLong("mpa"),
                                 getGenres(rs.getLong("user_id")),
                                 getLikes(rs.getLong("user_id"))),
                 count );

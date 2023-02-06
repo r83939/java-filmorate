@@ -3,36 +3,37 @@ package ru.yandex.practicum.filmorate.storage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.sql.ResultSet;
 import java.util.*;
-import java.util.stream.Collectors;
 
-@Component
+@Repository
 @Slf4j
 public class UserDbStorage implements UserStorage {
+
     private final JdbcTemplate jdbcTemplate;
+    private final SimpleJdbcInsert insertIntoUser;
     @Autowired
     public UserDbStorage(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
+        insertIntoUser = new SimpleJdbcInsert(this.jdbcTemplate).withTableName("users").usingGeneratedKeyColumns("user_id");
     }
 
     @Override
     public User createUser(User user) {
-        String sqlQuery = "insert into users(email, login, name, birthday) " +
-                "values (?, ?, ?, ?)";
-        if (jdbcTemplate.update(sqlQuery,
-                user.getEmail(),
-                user.getLogin(),
-                user.getName(),
-                user.getBirthday()) > 0) {
-            return user;
-        }
-        return null;
+        final Map<String, Object> parameters = new HashMap<>();
+        parameters.put("email", user.getEmail());
+        parameters.put("login", user.getLogin());
+        parameters.put("name", user.getName());
+        parameters.put("birthday", user.getBirthday());
+        Long userId = (Long) insertIntoUser.executeAndReturnKey(parameters);
+        return getUserById(userId);
     }
+
 
     @Override
     public User updateUser(User user) {

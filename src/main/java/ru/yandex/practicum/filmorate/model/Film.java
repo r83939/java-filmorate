@@ -32,17 +32,18 @@ public class Film {
     @Positive
     private int duration;
 
-    private String mpa;
-    private Set<Long> genres;
+    @NotNull
+    private Mpa mpa;
+    private List<Genre> genres;
     private Set<Long> likes;
 
     public Film() {
         this.id = 0;
         this.likes = new HashSet<>();
-        this.genres = new HashSet<>();
+        this.genres = new ArrayList<>();
     }
 
-    public Film(long id, String name, String description, LocalDate releaseDate, int duration, String mpa, Set<Long> genres, Set<Long> likes) {
+    public Film(long id, String name, String description, LocalDate releaseDate, int duration, Mpa mpa, List<Genre> genres, Set<Long> likes) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -61,13 +62,13 @@ public class Film {
         return  likes.remove(id);
     }
 
-    public boolean addGenre(Long id) {
-        return  genres.add(id);
-    }
+   // public boolean addGenre(Long id) {
+    //    return  genres.add(id);
+   // }
 
-    public boolean deleteGenre(Long id) {
-        return  genres.remove(id);
-    }
+   // public boolean deleteGenre(Long id) {
+   //     return  genres.remove(id);
+   // }
 
     @Override
     public boolean equals(Object o) {

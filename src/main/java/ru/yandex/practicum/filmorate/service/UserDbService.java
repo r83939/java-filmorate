@@ -41,8 +41,8 @@ public class UserDbService {
         if (StringUtils.isBlank(user.getName())) {
             user.setName(user.getLogin());
         }
-        userDbStorage.createUser(user);
-        return user;
+        return userDbStorage.createUser(user);
+
     }
 
     public User updateUser(User user) throws UnknownUserException, EntityAlreadyExistException {

@@ -6,12 +6,12 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.model.User;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.sql.ResultSet;
+import java.util.*;
 
 @Component
 @Slf4j
@@ -109,5 +109,65 @@ public class FilmDbStorage implements FilmStorage {
                                 rs.getString("mpa"),
                                 getGenres(rs.getLong("user_id")),
                                 getLikes(rs.getLong("user_id"))));
+    }
+
+    public List<Genre> getAllGenres() {
+        String sqlQuery = "SELECT * FROM GENRES";
+        return new ArrayList<Genre>(jdbcTemplate.queryForList(sqlQuery, Genre.class));
+    }
+
+    public List<Mpa> getAllMpa() {
+        String sqlQuery = "SELECT * FROM MPA";
+        return new ArrayList<Mpa>(jdbcTemplate.queryForList(sqlQuery, Mpa.class));
+    }
+
+    public Mpa getMpaById(long id) {
+        String sqlQuery = "SELECT * FROM MPA WHERE mpa_id=?";
+        return jdbcTemplate.queryForObject(sqlQuery, Mpa.class, id);
+    }
+
+    public Genre getGenreById(long id) {
+        String sqlQuery = "SELECT * FROM GENRES WHERE genre_id=?";
+        return jdbcTemplate.queryForObject(sqlQuery, Genre.class, id);
+    }
+
+    public boolean isFilmExist(Long filmId) {
+        String sqlQuery = "SELECT 1 FROM FILMS WHERE film_id=?";
+        return Boolean.TRUE.equals(jdbcTemplate.query(sqlQuery,
+                (ResultSet rs) -> {
+                    if (rs.next()) {
+                        return true;
+                    }
+                    return false;
+                }, filmId
+        ));
+    }
+
+    public boolean addLike(Long filmId, Long userId) {
+        String sqlQuery = "INSERT INTO LIKES (film_id, user_id) values (?,?)";
+        return jdbcTemplate.update(sqlQuery,
+                userId,
+                filmId) > 0;
+    }
+
+    public boolean deleteLike(Long filmId, Long userId) {
+        String sqlQuery = "DELETE FROM LIKES WHERE film_id = ? AND user_id = ?";
+        return jdbcTemplate.update(sqlQuery, filmId, userId ) > 0;
+    }
+
+    public List<Film> getTopFilms(Integer count) {
+        String sqlQuery = "SELECT * FROM FILMS WHERE film_id IN (SELECT film_id FROM (SELECT film_id, count (*)  count FROM LIKES GROUP BY film_id ORDER BY count  DESC LIMIT 3))";
+        return jdbcTemplate.query(sqlQuery,
+                (rs, rowNum) ->
+                        new Film(
+                                rs.getLong("user_id"),
+                                rs.getString("name"),
+                                rs.getString("description"),
+                                rs.getDate("release_date").toLocalDate(),
+                                rs.getInt("duration"),
+                                rs.getString("mpa"),
+                                getGenres(rs.getLong("user_id")),
+                                getLikes(rs.getLong("user_id"))),
+                count );
     }
 }

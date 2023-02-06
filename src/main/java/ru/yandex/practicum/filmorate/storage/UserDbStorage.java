@@ -7,6 +7,7 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.User;
 
+import java.sql.ResultSet;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -161,8 +162,8 @@ public class UserDbStorage implements UserStorage {
 
     public List<User> getCommonFriends(Long id, Long otherId) {
         List<User> commonFriends = new ArrayList<>();
-        String sql = "SELECT * FROM USERS WHERE USER_ID IN (SELECT FRIEND_ID FROM USERFRIENDS WHERE  USER_ID=? AND  FRIEND_ID IN (SELECT FRIEND_ID FROM USERFRIENDS WHERE USER_ID=?))";
-        return jdbcTemplate.query(sql,
+        String sqlQuery = "SELECT * FROM USERS WHERE USER_ID IN (SELECT FRIEND_ID FROM USERFRIENDS WHERE  USER_ID=? AND  FRIEND_ID IN (SELECT FRIEND_ID FROM USERFRIENDS WHERE USER_ID=?))";
+        return jdbcTemplate.query(sqlQuery,
                 (rs, rowNum) ->
                         new User(
                                 rs.getLong("user_id"),
@@ -173,4 +174,19 @@ public class UserDbStorage implements UserStorage {
                                 getUserFriends(rs.getLong("user_id"))),
                 new Object[] { id, otherId });
     }
+
+    public boolean isUserExist(Long userId) {
+        String sqlQuery = "SELECT 1 FROM USERS WHERE user_id=?";
+        return Boolean.TRUE.equals(jdbcTemplate.query(sqlQuery,
+                (ResultSet rs) -> {
+                    if (rs.next()) {
+                        return true;
+                    }
+                    return false;
+                }, userId
+        ));
+    }
+
+
+
 }

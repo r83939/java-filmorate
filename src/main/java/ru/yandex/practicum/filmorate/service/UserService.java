@@ -129,4 +129,6 @@ public class UserService  {
         }
         return inMemoryUserStorage.getCommonFriends(id, otherId);
     }
+
+
 }

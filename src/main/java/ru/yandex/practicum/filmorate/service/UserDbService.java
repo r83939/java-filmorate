@@ -119,4 +119,8 @@ public class UserDbService {
         }
         return userDbStorage.getCommonFriends(id, otherId);
     }
+
+    public boolean isUserExist(Long userId) {
+        return userDbStorage.isUserExist(userId);
+    }
 }

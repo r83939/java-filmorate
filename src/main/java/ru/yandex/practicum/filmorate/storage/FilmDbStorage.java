@@ -70,7 +70,7 @@ public class FilmDbStorage implements FilmStorage {
         if (filmRows.next()) {
             log.info("Найден фильм: {} {}", filmRows.getString("film_id"), filmRows.getString("name"));
             Film film = new Film(
-                    filmRows.getLong("user_id"),
+                    filmRows.getLong("film_id"),
                     filmRows.getString("name"),
                     filmRows.getString("description"),
                     filmRows.getDate("release_date").toLocalDate(),
@@ -101,12 +101,12 @@ public class FilmDbStorage implements FilmStorage {
         return jdbcTemplate.query(sqlQuery,
                 (rs, rowNum) ->
                         new Film(
-                                rs.getLong("user_id"),
+                                rs.getLong("film_id"),
                                 rs.getString("name"),
                                 rs.getString("description"),
                                 rs.getDate("release_date").toLocalDate(),
                                 rs.getInt("duration"),
-                                rs.getString("mpa"),
+                                getMpaByFilmId(rs.getLong("film_id")),
                                 getGenres(rs.getLong("user_id")),
                                 getLikes(rs.getLong("user_id"))));
     }
@@ -156,18 +156,23 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     public List<Film> getTopFilms(Integer count) {
-        String sqlQuery = "SELECT * FROM FILMS WHERE film_id IN (SELECT film_id FROM (SELECT film_id, count (*)  count FROM LIKES GROUP BY film_id ORDER BY count  DESC LIMIT 3))";
+        String sqlQuery = "SELECT * FROM FILMS WHERE film_id IN (SELECT film_id FROM (SELECT film_id, count (*)  count FROM LIKES GROUP BY film_id ORDER BY count  DESC LIMIT ?))";
         return jdbcTemplate.query(sqlQuery,
                 (rs, rowNum) ->
                         new Film(
-                                rs.getLong("user_id"),
+                                rs.getLong("film_id"),
                                 rs.getString("name"),
                                 rs.getString("description"),
                                 rs.getDate("release_date").toLocalDate(),
                                 rs.getInt("duration"),
-                                rs.getString("mpa"),
+                                getMpaByFilmId(rs.getLong("film_id")),
                                 getGenres(rs.getLong("user_id")),
                                 getLikes(rs.getLong("user_id"))),
                 count );
+    }
+
+    public String getMpaByFilmId(Long filmId) {
+        String sqlQuery = "SELECT name FROM mpa WHERE mpa_id = (SELECT mpa_id FROM FILMMPA WHERE film_id=?)";
+        return jdbcTemplate.queryForObject(sqlQuery, String.class, filmId);
     }
 }

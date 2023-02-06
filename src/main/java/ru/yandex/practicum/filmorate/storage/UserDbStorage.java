@@ -80,7 +80,7 @@ public class UserDbStorage implements UserStorage {
     }
 
     public Optional<User> getUserByEmail (String email) {
-        SqlRowSet userRows = jdbcTemplate.queryForRowSet("select * from users where email email = ?", email);
+        SqlRowSet userRows = jdbcTemplate.queryForRowSet("select * from users where email = ?", email);
         if (userRows.next()) {
             log.info("Найден пользователь: {} {}", userRows.getString("user_id"), userRows.getString("name"));
             Optional<User> user = Optional.of(new User(
@@ -93,7 +93,7 @@ public class UserDbStorage implements UserStorage {
             return user;
         } else {
             log.info("Пользователь с email {} не найден.", email);
-            return null;
+            return Optional.empty();
         }
     }
 
@@ -186,7 +186,5 @@ public class UserDbStorage implements UserStorage {
                 }, userId
         ));
     }
-
-
 
 }

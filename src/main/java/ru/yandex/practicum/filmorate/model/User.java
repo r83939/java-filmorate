@@ -15,6 +15,7 @@ import javax.validation.constraints.*;
 @Getter
 @Setter
 public class User {
+
     private long id;
     @Email
     @NotBlank
@@ -28,16 +29,16 @@ public class User {
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     @Past(message = "Incorrect date birthday")
     private LocalDate birthday;
-    private Map<Long, Boolean> friends;
+    private List<Long> friends;
 
 
 
     public User() {
         this.id = 0;
-        this.friends = new HashMap<>();
+        this.friends = new ArrayList<>();
     }
 
-    public User(long id, String email, String login, String name, LocalDate birthday, Map<Long, Boolean> friends) {
+    public User(long id, String email, String login, String name, LocalDate birthday, List<Long> friends) {
         this.id = id;
         this.email = email;
         this.login = login;
@@ -46,12 +47,12 @@ public class User {
         this.friends = friends;
     }
 
-    public Map<Long, Boolean> getFriends() {
+    public List<Long> getFriends() {
         return friends;
     }
 
-    public boolean addFriend(Long id, boolean isFriendConfirm) {
-        return  friends.put(id, isFriendConfirm);
+    public boolean addFriend(Long id) {
+        return  friends.add(id);
     }
 
     public boolean deleteFriend(Long id) {

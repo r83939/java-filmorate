@@ -31,7 +31,6 @@ public class Film {
     @NotNull
     @Positive
     private int duration;
-
     @NotNull
     private Mpa mpa;
     private List<Genre> genres;
@@ -61,14 +60,6 @@ public class Film {
     public boolean deleteLike(Long id) {
         return  likes.remove(id);
     }
-
-   // public boolean addGenre(Long id) {
-    //    return  genres.add(id);
-   // }
-
-   // public boolean deleteGenre(Long id) {
-   //     return  genres.remove(id);
-   // }
 
     @Override
     public boolean equals(Object o) {

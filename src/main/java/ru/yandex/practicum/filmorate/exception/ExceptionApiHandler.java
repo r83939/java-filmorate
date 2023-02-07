@@ -58,4 +58,20 @@ public class ExceptionApiHandler {
                 .body(new ErrorMessage(exception.getMessage()));
     }
 
+    @ExceptionHandler(UnknownMpaException.class)
+    public ResponseEntity<ErrorMessage> UnknownMpaException(UnknownMpaException exception) {
+        log.error(exception.getMessage(), exception);
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(new ErrorMessage(exception.getMessage()));
+    }
+
+    @ExceptionHandler(UnknownGenreException.class)
+    public ResponseEntity<ErrorMessage> UnknownGenreException(UnknownGenreException exception) {
+        log.error(exception.getMessage(), exception);
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(new ErrorMessage(exception.getMessage()));
+    }
+
 }

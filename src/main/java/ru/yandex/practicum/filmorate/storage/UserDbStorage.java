@@ -34,7 +34,6 @@ public class UserDbStorage implements UserStorage {
         return getUserById(userId);
     }
 
-
     @Override
     public User updateUser(User user) {
         String sqlQuery = "update users set email=?, login=?, name=?, birthday=? where user_id=?";
@@ -109,11 +108,11 @@ public class UserDbStorage implements UserStorage {
         } else return null;
     }
 
-    public Map<Long, Boolean> getUserFriends (Long userId) {
-        Map<Long, Boolean> userFriends = new HashMap<>();
+    public List<Long> getUserFriends (Long userId) {
+        List<Long> userFriends = new ArrayList<>();
         SqlRowSet friendsRows = jdbcTemplate.queryForRowSet("select * from userfriends where user_id = ?", userId);
         while (friendsRows.next()) {
-            userFriends.put(friendsRows.getLong("friend_id"), friendsRows.getBoolean("friendship_confirm"));
+            userFriends.add(friendsRows.getLong("friend_id"));
         }
         return userFriends;
     }
@@ -132,13 +131,23 @@ public class UserDbStorage implements UserStorage {
                                 getUserFriends(rs.getLong("user_id"))));
     }
 
-    public boolean addFriend ( long userId, int friendId) {
+    public boolean addFriend ( long userId, long friendId) {
         String sqlQuery = "insert into userfriends (user_id, friend_id, friendship_confirm) " +
                 "values (?, ?, ?)";
         return jdbcTemplate.update(sqlQuery,
                     userId,
                     friendId,
                     "FALSE") > 0;
+    }
+
+    public boolean deleteFriend(long userId, long friendId) {
+        String sqlQuery = "DELETE FROM userfriends WHERE user_id = ? AND friend_id = ?";
+        return jdbcTemplate.update(sqlQuery, new Object[] {  userId, friendId }) == 1;
+    }
+
+    public boolean isFriend(long userId, long friendId) {
+        String sqlQuery = "SELECT count(*) FROM userfriends WHERE user_id = ? AND friend_id = ?";
+        return jdbcTemplate.queryForObject(sqlQuery,  Integer.class, new Object[] {  userId, friendId }) > 0;
     }
 
     public int confirmFriendShip ( long userId, int friendId) {
@@ -150,15 +159,19 @@ public class UserDbStorage implements UserStorage {
         return numberOfRowsAffected;
     }
 
-
     public List<User> getAllFriends ( long userId){
-        List<User> users = new ArrayList<>();
-        if (getUserById(userId).getFriends() != null) {
-            for (Map.Entry<Long, Boolean> entry : getUserById(userId).getFriends().entrySet()) {
-                users.add(getUserById(entry.getKey()));
-            }
-        }
-        return users;
+        String sql = "SELECT * FROM users WHERE user_id IN ( SELECT DISTINCT friend_id FROM userfriends WHERE user_id = ? )";
+        return jdbcTemplate.query(sql,
+                (rs, rowNum) ->
+                        new User(
+                                rs.getLong("user_id"),
+                                rs.getString("email"),
+                                rs.getString("login"),
+                                rs.getString("name"),
+                                rs.getDate("birthday").toLocalDate(),
+                                getUserFriends(rs.getLong("user_id"))),
+                userId
+        );
     }
 
     public List<User> getCommonFriends(Long id, Long otherId) {

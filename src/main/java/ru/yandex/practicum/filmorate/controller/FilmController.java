@@ -88,29 +88,9 @@ public class FilmController {
         return topFilms;
     }
 
-    @GetMapping("/genres")
-    public List<Genre> getAllGenres() {
-        return filmService.getAllGenres();
 
-    }
 
-    @GetMapping("/genres/{id}")
-    public Genre getGenreById(@PathVariable long id) {
-        return filmService.getGenreById(id);
 
-    }
-
-    @GetMapping("/mpa")
-    public List<Mpa> getAllMpa() {
-        return filmService.getAllMpa();
-
-    }
-
-    @GetMapping("/mpa/{id}")
-    public Mpa getMpaById(@PathVariable long id) {
-        return filmService.getMpaById(id);
-
-    }
 
 
 }

@@ -84,10 +84,10 @@ public class UserService  {
             throw new UnknownUserException("Пользователь с ID " + friendId + " не существует.");
         }
 
-        if (!user1.addFriend(friendId, false)) {
+        if (!user1.addFriend(friendId)) {
             throw new EntityAlreadyExistException(String.format("Пользователь с ID: %d уже является другом пользователю с ID: ",friendId, userId));
         }
-        if (!user2.addFriend(userId, false)) {
+        if (!user2.addFriend(userId)) {
             throw new EntityAlreadyExistException(String.format("Пользователь с ID: %d уже является другом пользователю с ID: ", userId, friendId));
         }
         inMemoryUserStorage.updateUser(user1);

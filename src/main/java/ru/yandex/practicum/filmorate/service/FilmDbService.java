@@ -3,6 +3,8 @@ package ru.yandex.practicum.filmorate.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.UnknownFilmException;
+import ru.yandex.practicum.filmorate.exception.UnknownGenreException;
+import ru.yandex.practicum.filmorate.exception.UnknownMpaException;
 import ru.yandex.practicum.filmorate.exception.UnknownUserException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
@@ -37,12 +39,22 @@ public class FilmDbService {
         return filmStorage.getAllMpa();
     }
 
-    public Mpa getMpaById(long id) {
-        return filmStorage.getMpaById(id);
+    public Mpa getMpaById(long id) throws UnknownMpaException {
+        if (filmStorage.getMpaById(id) != null) {
+            return filmStorage.getMpaById(id);
+        }
+        else {
+            throw new UnknownMpaException("Не найден MPA с ID: " + id);
+        }
     }
 
-    public Genre getGenreById(long id) {
-        return filmStorage.getGenreById(id);
+    public Genre getGenreById(long id) throws UnknownGenreException {
+        if (filmStorage.getGenreById(id) != null) {
+            return filmStorage.getGenreById(id);
+        }
+        else {
+            throw new UnknownGenreException("Не найден MPA с ID: " + id);
+        }
     }
 
     public Film getFilmById(long id) {

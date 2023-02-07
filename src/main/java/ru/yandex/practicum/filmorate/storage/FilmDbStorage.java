@@ -33,7 +33,8 @@ public class FilmDbStorage implements FilmStorage {
         parameters.put("name", film.getName());
         parameters.put("description", film.getDescription());
         parameters.put("release_date", film.getReleaseDate());
-        parameters.put("mpa", film.getMpa());
+        parameters.put("duration", film.getDuration());
+        parameters.put("mpa_id", film.getMpa().getId());
         Long filmId = (Long) insertIntoFilm.executeAndReturnKey(parameters);
         return getFilmById(filmId);
     }
@@ -64,23 +65,23 @@ public class FilmDbStorage implements FilmStorage {
         return null;
     }
 
-    public Film getFilmById(long id) {
+    public Film getFilmById(long filmId) {
         String sqlQuery = "SELECT * FROM FILMS WHERE film_id = ?";
-        SqlRowSet filmRows = jdbcTemplate.queryForRowSet(sqlQuery, id);
-        if (filmRows.next()) {
-            log.info("Найден фильм: {} {}", filmRows.getString("film_id"), filmRows.getString("name"));
+        SqlRowSet rs = jdbcTemplate.queryForRowSet(sqlQuery, filmId);
+        if (rs.next()) {
+            log.info("Найден фильм: {} {}", rs.getString("film_id"), rs.getString("name"));
             Film film = new Film(
-                    filmRows.getLong("film_id"),
-                    filmRows.getString("name"),
-                    filmRows.getString("description"),
-                    filmRows.getDate("release_date").toLocalDate(),
-                    filmRows.getInt("duration"),
-                    filmRows.getLong("mpa"),
-                    getGenres(id),
-                    getLikes(id));
+                    rs.getLong("film_id"),
+                    rs.getString("name"),
+                    rs.getString("description"),
+                    rs.getDate("release_date").toLocalDate(),
+                    rs.getInt("duration"),
+                    getMpaById(rs.getLong("mpa_id")),
+                    getGenresByFilmId(rs.getLong("user_id")),
+                    getLikes(filmId));
             return film;
         } else {
-            log.info("Пользователь с идентификатором {} не найден.", id);
+            log.info("Пользователь с идентификатором {} не найден.", filmId);
             return null;
         }
     }
@@ -88,6 +89,19 @@ public class FilmDbStorage implements FilmStorage {
     public Set<Long> getGenres(long filmId) {
         String sqlQuery = "SELECT DISTINCT genre_id FROM GENRES WHERE film_id = ?";
         return new HashSet<Long>(jdbcTemplate.queryForList(sqlQuery, Long.class, filmId));
+    }
+
+    public List<Genre> getGenresByFilmId(long filmId) {
+        String sqlQuery = "SELECT * FROM genres WHERE genre_id IN ( SELECT DISTINCT genre_id FROM FILMGENRES WHERE film_id = ?)";
+        List genres = new ArrayList<>();
+        genres = jdbcTemplate.query(sqlQuery,
+                (rs, rowNum) ->
+                        new Genre(
+                                rs.getLong("genre_id"),
+                                rs.getString("name")),
+                filmId);
+        log.info("У фильм с ID: {} жанров: {}", filmId, genres.size());
+        return genres;
     }
 
     public Set<Long> getLikes(long filmId) {
@@ -106,30 +120,60 @@ public class FilmDbStorage implements FilmStorage {
                                 rs.getString("description"),
                                 rs.getDate("release_date").toLocalDate(),
                                 rs.getInt("duration"),
-                                rs.getLong("mpa"),
-                                getGenres(rs.getLong("user_id")),
+                                getMpaById(rs.getLong("mpa")),
+                                getGenresByFilmId(rs.getLong("user_id")),
                                 getLikes(rs.getLong("user_id"))));
     }
 
     public List<Genre> getAllGenres() {
         String sqlQuery = "SELECT * FROM GENRES";
-        return new ArrayList<Genre>(jdbcTemplate.queryForList(sqlQuery, Genre.class));
+        return jdbcTemplate.query(sqlQuery,
+                (rs, rowNum) ->
+                        new Genre(
+                                rs.getLong("genre_id"),
+                                rs.getString("name")));
     }
 
     public List<Mpa> getAllMpa() {
         String sqlQuery = "SELECT * FROM MPA";
-        return new ArrayList<Mpa>(jdbcTemplate.queryForList(sqlQuery, Mpa.class));
+        return jdbcTemplate.query(sqlQuery,
+                (rs, rowNum) ->
+                        new Mpa(
+                                rs.getLong("mpa_id"),
+                                rs.getString("name")));
     }
 
     public Mpa getMpaById(long id) {
         String sqlQuery = "SELECT * FROM MPA WHERE mpa_id=?";
-        return jdbcTemplate.queryForObject(sqlQuery, Mpa.class, id);
+        SqlRowSet userRows = jdbcTemplate.queryForRowSet(sqlQuery, id);
+        if (userRows.next()) {
+            log.info("Найден MPA: {} {}", userRows.getString("mpa_id"), userRows.getString("name"));
+            Mpa mpa = new Mpa(
+                    userRows.getLong("mpa_id"),
+                    userRows.getString("name"));
+            return mpa;
+        } else {
+            log.info("MPA с идентификатором {} не найден.", id);
+            return null;
+        }
     }
 
     public Genre getGenreById(long id) {
         String sqlQuery = "SELECT * FROM GENRES WHERE genre_id=?";
-        return jdbcTemplate.queryForObject(sqlQuery, Genre.class, id);
+        SqlRowSet userRows = jdbcTemplate.queryForRowSet(sqlQuery, id);
+        if (userRows.next()) {
+            log.info("Найден жанр: {} {}", userRows.getString("genre_id"), userRows.getString("name"));
+            Genre genre = new Genre(
+                    userRows.getLong("genre_id"),
+                    userRows.getString("name"));
+            return genre;
+        } else {
+            log.info("Жанр с идентификатором {} не найден.", id);
+            return null;
+        }
     }
+
+
 
     public boolean isFilmExist(Long filmId) {
         String sqlQuery = "SELECT 1 FROM FILMS WHERE film_id=?";
@@ -165,8 +209,8 @@ public class FilmDbStorage implements FilmStorage {
                                 rs.getString("description"),
                                 rs.getDate("release_date").toLocalDate(),
                                 rs.getInt("duration"),
-                                rs.getLong("mpa"),
-                                getGenres(rs.getLong("user_id")),
+                                getMpaById(rs.getLong("mpa")),
+                                getGenresByFilmId(rs.getLong("user_id")),
                                 getLikes(rs.getLong("user_id"))),
                 count );
     }

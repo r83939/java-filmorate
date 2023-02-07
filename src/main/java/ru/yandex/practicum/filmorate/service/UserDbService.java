@@ -73,14 +73,10 @@ public class UserDbService {
             throw new UnknownUserException("Пользователь с ID " + friendId + " не существует.");
         }
 
-        if (!user1.addFriend(friendId, false)) {
-            throw new EntityAlreadyExistException(String.format("Пользователь с ID: %d уже является другом пользователю с ID: ",friendId, userId));
+        if (userDbStorage.isFriend(userId, friendId )) {
+            throw new EntityAlreadyExistException(String.format("Пользователь с ID: %d уже является другом пользователю с ID: %d",friendId, userId));
         }
-        if (!user2.addFriend(userId, false)) {
-            throw new EntityAlreadyExistException(String.format("Пользователь с ID: %d уже является другом пользователю с ID: ", userId, friendId));
-        }
-        userDbStorage.updateUser(user1);
-        userDbStorage.updateUser(user2);
+        userDbStorage.addFriend(userId, friendId);
     }
 
     public void deleteFriend(long userId, long friendId) throws UserIsNotFriendException, UnknownUserException {
@@ -92,14 +88,10 @@ public class UserDbService {
         if (user2 == null) {
             throw new UnknownUserException("Пользователь с ID " + friendId + " не существует.");
         }
-        if (!user1.deleteFriend(friendId)) {
-            throw new UserIsNotFriendException(String.format("У пользователя ID: %d  нет друга с ID: %d", friendId, userId));
+        if (!userDbStorage.isFriend(userId, friendId )) {
+            throw new UserIsNotFriendException(String.format("У пользователя ID: %d  нет друга с ID: %d", userId, friendId));
         }
-        if (!user2.deleteFriend(userId)) {
-            throw new UserIsNotFriendException(String.format("У пользователя ID: %d  нет друга с ID: %d" , userId, friendId));
-        }
-        userDbStorage.updateUser(user1);
-        userDbStorage.updateUser(user2);
+        userDbStorage.deleteFriend(userId, friendId);
     }
 
 

@@ -56,13 +56,11 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     public List<User> getAllFriends(long userId) {
-        List<User> users = new ArrayList<>();
-        if (getUserById(userId).getFriends() != null) {
-            for (Map.Entry<Long, Boolean> entry : getUserById(userId).getFriends().entrySet()) {
-                users.add(getUserById(entry.getKey()));
-            }
+        List<User> allFriends = new ArrayList<>();
+        for (Long id : getUserById(userId).getFriends()) {
+            allFriends.add(getUserById(id));
         }
-        return users;
+        return allFriends;
     }
 
     public List<User> getCommonFriends(long id, long otherId) {

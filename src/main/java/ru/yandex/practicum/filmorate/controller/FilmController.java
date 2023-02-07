@@ -5,10 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exception.EntityAlreadyExistException;
-import ru.yandex.practicum.filmorate.exception.NoLikeException;
-import ru.yandex.practicum.filmorate.exception.UnknownFilmException;
-import ru.yandex.practicum.filmorate.exception.UnknownUserException;
+import ru.yandex.practicum.filmorate.exception.*;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
@@ -50,7 +47,7 @@ public class FilmController {
     }
 
     @PutMapping
-    public Film updateFilm(@Valid @RequestBody Film updateFilm) throws UnknownFilmException {
+    public Film updateFilm(@Valid @RequestBody Film updateFilm) throws UnknownFilmException, UpdateFilmException {
         Film updatedFilm = filmService.updateFilm(updateFilm);
         log.trace("Обновлен фильм: " + updatedFilm);
         return updatedFilm;

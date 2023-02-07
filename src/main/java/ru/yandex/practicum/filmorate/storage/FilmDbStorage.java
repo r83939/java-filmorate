@@ -7,6 +7,7 @@ import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
@@ -28,6 +29,7 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
+    @Transactional
     public Film createFilm(Film film) {
         final Map<String, Object> parameters = new HashMap<>();
         parameters.put("name", film.getName());
@@ -36,19 +38,27 @@ public class FilmDbStorage implements FilmStorage {
         parameters.put("duration", film.getDuration());
         parameters.put("mpa_id", film.getMpa().getId());
         Long filmId = (Long) insertIntoFilm.executeAndReturnKey(parameters);
+
+        String sqlQuery = "INSERT INTO FILMGENRES (film_id, genre_id) values (?,?)";
+        if (film.getGenres().size() > 0) {
+            for (Genre genre : film.getGenres()) {
+                jdbcTemplate.update(sqlQuery, filmId, genre.getId());
+            }
+        }
         return getFilmById(filmId);
     }
 
     @Override
     public Film updateFilm(Film film) {
-        String sqlQuery = "UPDATE FILMS SET name=?, description=?, releaseDate=?, duration=?, mpa=?";
+        String sqlQuery = "UPDATE FILMS SET name=?, description=?, release_date=?, duration=?, mpa_id=? WHERE film_id=?";
         if (jdbcTemplate.update(sqlQuery,
                 film.getName(),
                 film.getDescription(),
                 film.getReleaseDate(),
                 film.getDuration(),
-                film.getMpa()) > 0) {
-            return film;
+                film.getMpa().getId(),
+                film.getId()) > 0) {
+            return getFilmById(film.getId());
         }
         return null;
     }
@@ -122,7 +132,7 @@ public class FilmDbStorage implements FilmStorage {
                                 rs.getInt("duration"),
                                 getMpaById(rs.getLong("mpa_id")),
                                 getGenresByFilmId(rs.getLong("film_id")),
-                                getLikes(rs.getLong("user_id"))));
+                                getLikes(rs.getLong("film_id"))));
     }
 
     public List<Genre> getAllGenres() {
@@ -190,8 +200,8 @@ public class FilmDbStorage implements FilmStorage {
     public boolean addLike(Long filmId, Long userId) {
         String sqlQuery = "INSERT INTO LIKES (film_id, user_id) values (?,?)";
         return jdbcTemplate.update(sqlQuery,
-                userId,
-                filmId) > 0;
+                filmId,
+                userId) > 0;
     }
 
     public boolean deleteLike(Long filmId, Long userId) {
@@ -209,9 +219,9 @@ public class FilmDbStorage implements FilmStorage {
                                 rs.getString("description"),
                                 rs.getDate("release_date").toLocalDate(),
                                 rs.getInt("duration"),
-                                getMpaById(rs.getLong("mpa")),
-                                getGenresByFilmId(rs.getLong("user_id")),
-                                getLikes(rs.getLong("user_id"))),
+                                getMpaById(rs.getLong("mpa_id")),
+                                getGenresByFilmId(rs.getLong("film_id")),
+                                getLikes(rs.getLong("film_id"))),
                 count );
     }
 

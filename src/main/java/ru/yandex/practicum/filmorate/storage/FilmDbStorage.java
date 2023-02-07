@@ -77,7 +77,7 @@ public class FilmDbStorage implements FilmStorage {
                     rs.getDate("release_date").toLocalDate(),
                     rs.getInt("duration"),
                     getMpaById(rs.getLong("mpa_id")),
-                    getGenresByFilmId(rs.getLong("user_id")),
+                    getGenresByFilmId(rs.getLong("film_id")),
                     getLikes(filmId));
             return film;
         } else {
@@ -120,8 +120,8 @@ public class FilmDbStorage implements FilmStorage {
                                 rs.getString("description"),
                                 rs.getDate("release_date").toLocalDate(),
                                 rs.getInt("duration"),
-                                getMpaById(rs.getLong("mpa")),
-                                getGenresByFilmId(rs.getLong("user_id")),
+                                getMpaById(rs.getLong("mpa_id")),
+                                getGenresByFilmId(rs.getLong("film_id")),
                                 getLikes(rs.getLong("user_id"))));
     }
 

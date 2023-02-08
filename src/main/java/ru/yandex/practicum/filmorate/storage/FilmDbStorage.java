@@ -36,6 +36,7 @@ public class FilmDbStorage implements FilmStorage {
         parameters.put("description", film.getDescription());
         parameters.put("release_date", film.getReleaseDate());
         parameters.put("duration", film.getDuration());
+        parameters.put("rate", 0);
         parameters.put("mpa_id", film.getMpa().getId());
         Long filmId = (Long) insertIntoFilm.executeAndReturnKey(parameters);
 
@@ -51,18 +52,17 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     @Transactional
     public Film updateFilm(Film film) {
-        String sqlQuery = "UPDATE FILMS SET name=?, description=?, release_date=?, duration=?, mpa_id=? WHERE film_id=?";
+        String sqlQuery = "UPDATE FILMS SET name=?, description=?, release_date=?, duration=?, rate=?, mpa_id=? WHERE film_id=?";
         if (jdbcTemplate.update(sqlQuery,
                 film.getName(),
                 film.getDescription(),
                 film.getReleaseDate(),
                 film.getDuration(),
+                film.getRate(),
                 film.getMpa().getId(),
                 film.getId()) > 0) {
-            if (!film.getGenres().isEmpty()) {
-                deleteGenresByFilmId(film.getId());
+                deleteGenresByFilmId(film.getId()); // обновляем жанры
                 addGenresByFilmId(film.getId(),film.getGenres());
-            }
             return getFilmById(film.getId());
         }
         return null;
@@ -103,6 +103,7 @@ public class FilmDbStorage implements FilmStorage {
                     rs.getString("description"),
                     rs.getDate("release_date").toLocalDate(),
                     rs.getInt("duration"),
+                    rs.getLong("rate"),
                     getMpaById(rs.getLong("mpa_id")),
                     getGenresByFilmId(rs.getLong("film_id")),
                     getLikes(filmId));
@@ -147,6 +148,7 @@ public class FilmDbStorage implements FilmStorage {
                                 rs.getString("description"),
                                 rs.getDate("release_date").toLocalDate(),
                                 rs.getInt("duration"),
+                                rs.getLong("rate"),
                                 getMpaById(rs.getLong("mpa_id")),
                                 getGenresByFilmId(rs.getLong("film_id")),
                                 getLikes(rs.getLong("film_id"))));
@@ -200,8 +202,6 @@ public class FilmDbStorage implements FilmStorage {
         }
     }
 
-
-
     public boolean isFilmExist(Long filmId) {
         String sqlQuery = "SELECT 1 FROM FILMS WHERE film_id=?";
         return Boolean.TRUE.equals(jdbcTemplate.query(sqlQuery,
@@ -214,15 +214,19 @@ public class FilmDbStorage implements FilmStorage {
         ));
     }
 
+    @Transactional
     public boolean addLike(Long filmId, Long userId) {
         String sqlQuery = "INSERT INTO LIKES (film_id, user_id) values (?,?)";
+        increaseFilmRate(filmId);
         return jdbcTemplate.update(sqlQuery,
                 filmId,
                 userId) > 0;
     }
 
+    @Transactional
     public boolean deleteLike(Long filmId, Long userId) {
         String sqlQuery = "DELETE FROM LIKES WHERE film_id = ? AND user_id = ?";
+        decreaseFilmRate(filmId);
         return jdbcTemplate.update(sqlQuery, filmId, userId ) > 0;
     }
 
@@ -236,10 +240,25 @@ public class FilmDbStorage implements FilmStorage {
                                 rs.getString("description"),
                                 rs.getDate("release_date").toLocalDate(),
                                 rs.getInt("duration"),
+                                rs.getLong("rate"),
                                 getMpaById(rs.getLong("mpa_id")),
                                 getGenresByFilmId(rs.getLong("film_id")),
                                 getLikes(rs.getLong("film_id"))),
                 count );
+    }
+
+    public Long getFilmRating(long filmId) {
+        String sqlQuery = "SELECT COUNT (DISTINCT user_id )  FROM LIKES WHERE film_id = ?";
+        return  jdbcTemplate.queryForObject(sqlQuery, Long.class, filmId);
+    }
+
+    public boolean increaseFilmRate(long filmId) {
+        String sqlQuery = "UPDATE FILMS SET rate = rate + 1 WHERE film_id=?";
+        return jdbcTemplate.update(sqlQuery, filmId) > 0;
+    }
+    public boolean decreaseFilmRate(long filmId) {
+        String sqlQuery = "UPDATE FILMS SET rate = rate - 1 WHERE film_id=?";
+        return jdbcTemplate.update(sqlQuery, filmId) > 0;
     }
 
     public String getMpaByFilmId(Long filmId) {

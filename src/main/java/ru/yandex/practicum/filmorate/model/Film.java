@@ -31,6 +31,8 @@ public class Film {
     @NotNull
     @Positive
     private int duration;
+
+    private long rate;
     @NotNull
     private Mpa mpa;
     private List<Genre> genres;
@@ -42,12 +44,13 @@ public class Film {
         this.genres = new ArrayList<>();
     }
 
-    public Film(long id, String name, String description, LocalDate releaseDate, int duration, Mpa mpa, List<Genre> genres, Set<Long> likes) {
+    public Film(long id, String name, String description, LocalDate releaseDate, int duration, long rate, Mpa mpa, List<Genre> genres, Set<Long> likes) {
         this.id = id;
         this.name = name;
         this.description = description;
         this.releaseDate = releaseDate;
         this.duration = duration;
+        this.rate = rate;
         this.mpa = mpa;
         this.genres = genres;
         this.likes = likes;

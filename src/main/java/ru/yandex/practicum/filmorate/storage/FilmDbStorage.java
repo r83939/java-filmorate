@@ -49,6 +49,7 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
+    @Transactional
     public Film updateFilm(Film film) {
         String sqlQuery = "UPDATE FILMS SET name=?, description=?, release_date=?, duration=?, mpa_id=? WHERE film_id=?";
         if (jdbcTemplate.update(sqlQuery,
@@ -58,9 +59,25 @@ public class FilmDbStorage implements FilmStorage {
                 film.getDuration(),
                 film.getMpa().getId(),
                 film.getId()) > 0) {
+            if (!film.getGenres().isEmpty()) {
+                deleteGenresByFilmId(film.getId());
+                addGenresByFilmId(film.getId(),film.getGenres());
+            }
             return getFilmById(film.getId());
         }
         return null;
+    }
+
+    public void deleteGenresByFilmId(long filmId) {
+        String sqlQuery = "DELETE FROM FILMGENRES WHERE film_id = ?";
+        jdbcTemplate.update(sqlQuery, filmId);
+    }
+
+    public void addGenresByFilmId(long filmId, List<Genre> genres) {
+        String sqlQuery = "INSERT INTO FILMGENRES (film_id, genre_id) values (?,?)";
+            for (Genre genre: genres) {
+                jdbcTemplate.update(sqlQuery, filmId, genre.getId());
+        }
     }
 
     @Override

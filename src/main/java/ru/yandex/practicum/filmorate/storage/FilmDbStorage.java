@@ -36,7 +36,7 @@ public class FilmDbStorage implements FilmStorage {
         parameters.put("description", film.getDescription());
         parameters.put("release_date", film.getReleaseDate());
         parameters.put("duration", film.getDuration());
-        parameters.put("rate", 0);
+        parameters.put("rate", film.getRate());
         parameters.put("mpa_id", film.getMpa().getId());
         Long filmId = (Long) insertIntoFilm.executeAndReturnKey(parameters);
 
@@ -231,7 +231,8 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     public List<Film> getTopFilms(Integer count) {
-        String sqlQuery = "SELECT * FROM FILMS WHERE film_id IN (SELECT film_id FROM (SELECT film_id, count (*)  count FROM LIKES GROUP BY film_id ORDER BY count  DESC LIMIT ?))";
+        String sqlQuery = "SELECT * FROM FILMS  ORDER BY rate DESC LIMIT ?";
+        //String sqlQuery = "SELECT * FROM FILMS WHERE film_id IN (SELECT film_id FROM (SELECT film_id, count (*)  count FROM LIKES GROUP BY film_id ORDER BY count  DESC LIMIT ?))";
         return jdbcTemplate.query(sqlQuery,
                 (rs, rowNum) ->
                         new Film(

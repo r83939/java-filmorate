@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
@@ -28,23 +29,12 @@ import static org.hamcrest.MatcherAssert.assertThat;
 @SpringBootTest
 @AutoConfigureTestDatabase
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
+@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 public class FilmoRateApplicationTests {
+    @Autowired
     private final UserDbStorage userStorage;
-
+    @Autowired
     private final FilmDbStorage filmStorage;
-
-    @BeforeAll
-    public static void beforeAll() {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        User user1 = new User(0, "ivan", "ivan", "ivan", LocalDate.parse("2000-01-20", formatter), new ArrayList<>());
-        User user2 = new User(0, "petr", "petr", "petr", LocalDate.parse("1995-02-10", formatter), new ArrayList<>());
-        User user3 = new User(0, "sergey", "sergey", "sergey", LocalDate.parse("1980-03-07", formatter), new ArrayList<>());
-        Film film = new Film(0, "Spy Game", "Film", LocalDate.parse("2001-11-21", formatter), 127, 0, new Mpa(5,"NC-17"), new ArrayList<Genre>(List.of(new Genre(4,"Триллер"))), new HashSet<>());
-        Film film1 = new Film(0, "Avatar: The Way of Water", "Film", LocalDate.parse("2022-09-10", formatter), 192, 0, new Mpa(1,"G"), new ArrayList<Genre>(List.of(new Genre(6,"Боевик"))), new HashSet<>());
-        Film film2 = new Film(0, "The Usual Suspects", "Film", LocalDate.parse("1995-01-25", formatter), 106, 0, new Mpa(5,"NC-17"), new ArrayList<Genre>(List.of(new Genre(4,"Триллер"))), new HashSet<>());
-
-    }
-
 
     @Test
     void getUserById() {
@@ -205,6 +195,7 @@ public class FilmoRateApplicationTests {
     }
 
 
+
     @Test
     void createFilm() {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -327,6 +318,58 @@ public class FilmoRateApplicationTests {
 
     @Test
     void getTopFilms() {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        User user1 = new User(0, "ivan@mail.ru", "ivan", "ivan", LocalDate.parse("2000-01-20", formatter), new ArrayList<>());
+        User user2 = new User(0, "petr@mail.ru", "petr", "petr", LocalDate.parse("1995-02-10", formatter), new ArrayList<>());
+        User user3 = new User(0, "sergey@mail.ru", "sergey", "sergey", LocalDate.parse("1990-03-12", formatter), new ArrayList<>());
+        User user4 = new User(0, "elena@mail.ru", "elena", "elena", LocalDate.parse("1996-01-20", formatter), new ArrayList<>());
+        User user5 = new User(0, "olga@mail.ru", "olga", "olga", LocalDate.parse("1998-02-10", formatter), new ArrayList<>());
+        User user6 = new User(0, "natalya@mail.ru", "natalya", "natalya", LocalDate.parse("1990-04-11", formatter), new ArrayList<>());
+        User createdUser1 = userStorage.createUser(user1);
+        User createdUser2 = userStorage.createUser(user2);
+        User createdUser3 = userStorage.createUser(user3);
+        User createdUser4 = userStorage.createUser(user4);
+        User createdUser5 = userStorage.createUser(user5);
+        User createdUser6 = userStorage.createUser(user6);
+
+        Film film1 = new Film(0, "Spy Game", "Film", LocalDate.parse("2001-11-21", formatter), 127, 0, new Mpa(5,"NC-17"), new ArrayList<Genre>(List.of(new Genre(4,"Триллер"))), new HashSet<>());
+        Film film2 = new Film(0, "Avatar: The Way of Water", "Film", LocalDate.parse("2022-09-10", formatter), 192, 0, new Mpa(1,"G"), new ArrayList<Genre>(List.of(new Genre(6,"Боевик"))), new HashSet<>());
+        Film film3 = new Film(0, "The Usual Suspects", "Film", LocalDate.parse("1995-01-25", formatter), 106, 0, new Mpa(5,"NC-17"), new ArrayList<Genre>(List.of(new Genre(4,"Триллер"))), new HashSet<>());
+        Film film4 = new Film(0, "Jack Ryan", "Action", LocalDate.parse("2018-01-25", formatter), 60, 0, new Mpa(5,"NC-17"), new ArrayList<Genre>(List.of(new Genre(4,"Триллер"))), new HashSet<>());
+        Film createdFilm1 = filmStorage.createFilm(film1);
+        Film createdFilm2 = filmStorage.createFilm(film2);
+        Film createdFilm3 = filmStorage.createFilm(film3);
+        Film createdFilm4 = filmStorage.createFilm(film4);
+
+        filmStorage.addLike(createdFilm1.getId(), createdUser1.getId());
+        filmStorage.addLike(createdFilm1.getId(), createdUser2.getId());
+        filmStorage.addLike(createdFilm1.getId(), createdUser3.getId());
+        filmStorage.addLike(createdFilm1.getId(), createdUser4.getId());
+        filmStorage.addLike(createdFilm1.getId(), createdUser5.getId());
+        filmStorage.addLike(createdFilm1.getId(), createdUser6.getId());
+
+        filmStorage.addLike(createdFilm2.getId(), createdUser1.getId());
+        filmStorage.addLike(createdFilm2.getId(), createdUser2.getId());
+        filmStorage.addLike(createdFilm2.getId(), createdUser3.getId());
+        filmStorage.addLike(createdFilm2.getId(), createdUser4.getId());
+        filmStorage.addLike(createdFilm2.getId(), createdUser5.getId());
+
+        filmStorage.addLike(createdFilm3.getId(), createdUser1.getId());
+        filmStorage.addLike(createdFilm3.getId(), createdUser2.getId());
+        filmStorage.addLike(createdFilm3.getId(), createdUser3.getId());
+        filmStorage.addLike(createdFilm3.getId(), createdUser4.getId());
+
+        filmStorage.addLike(createdFilm4.getId(), createdUser1.getId());
+        filmStorage.addLike(createdFilm4.getId(), createdUser2.getId());
+        filmStorage.addLike(createdFilm4.getId(), createdUser3.getId());
+
+        List<Film> topFilms = filmStorage.getTopFilms(1); // топ из одного фильма
+        Assertions.assertThat(topFilms).hasSize(1);
+        Assertions.assertThat(topFilms.get(0).getId()).isEqualTo(1); // Наиболее популярный фильм с id 1
+
+        List<Film> topFilms4 = filmStorage.getTopFilms(4); // топ из 4 фильмов
+        Assertions.assertThat(topFilms4).hasSize(4);
+        Assertions.assertThat(topFilms4.get(0).getId()).isEqualTo(1); // Наиболее популярный фильм с id 1
     }
 
 }

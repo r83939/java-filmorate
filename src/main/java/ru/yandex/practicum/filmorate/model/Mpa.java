@@ -11,6 +11,9 @@ public class Mpa {
 
     private String name;
 
+    public Mpa() {
+    }
+
     public Mpa(long mpa_id, String name) {
         this.id = mpa_id;
         this.name = name;

@@ -257,26 +257,72 @@ public class FilmoRateApplicationTests {
 
     @Test
     void getFilmById() {
-    }
-
-    @Test
-    void testCreateFilm() {
+        Assertions.assertThat(filmStorage.getAllFilms()).hasSize(0);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        Film film1 = new Film(0, "Spy Game", "Film", LocalDate.parse("2001-11-21", formatter), 127, 0, new Mpa(5,"NC-17"), new ArrayList<Genre>(List.of(new Genre(4,"Триллер"))), new HashSet<>());
+        Film film2 = new Film(0, "Avatar: The Way of Water", "Film", LocalDate.parse("2022-09-10", formatter), 192, 0, new Mpa(1,"G"), new ArrayList<Genre>(List.of(new Genre(6,"Боевик"))), new HashSet<>());
+        Film createdFilm1 = filmStorage.createFilm(film1);
+        Film createdFilm2 = filmStorage.createFilm(film2);
+        Film gotFilm = filmStorage.getFilmById(2);
+        Assertions.assertThat(createdFilm2.getId()).isEqualTo(gotFilm.getId());
+        Assertions.assertThat(createdFilm2).isEqualTo(gotFilm);
     }
 
     @Test
     void updateFilm() {
+        Assertions.assertThat(filmStorage.getAllFilms()).hasSize(0);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        Film film1 = new Film(0, "Spy Game", "Film", LocalDate.parse("2001-11-21", formatter), 127, 0, new Mpa(5,"NC-17"), new ArrayList<Genre>(List.of(new Genre(4,"Триллер"))), new HashSet<>());
+        Film createdFilm1 = filmStorage.createFilm(film1);
+
+
     }
 
     @Test
     void deleteFilm() {
+        Assertions.assertThat(filmStorage.getAllFilms()).hasSize(0);
+        Assertions.assertThat(filmStorage.getAllFilms()).hasSize(0);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        Film film1 = new Film(0, "Spy Game", "Film", LocalDate.parse("2001-11-21", formatter), 127, 0, new Mpa(5,"NC-17"), new ArrayList<Genre>(), new HashSet<>());
+        Film createdFilm1 = filmStorage.createFilm(film1);
+        Assertions.assertThat(filmStorage.getAllFilms()).hasSize(1);
+        Optional<Film> deletedFilm = filmStorage.deleteFilm(1);
+        Assertions.assertThat(filmStorage.getAllFilms()).hasSize(0);
+        Assertions.assertThat(deletedFilm.get().getId()).isEqualTo(createdFilm1.getId());
     }
 
     @Test
     void addLike() {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        User user = new User(0, "ivan@mail.ru", "ivan", "ivan", LocalDate.parse("2000-01-20", formatter), new ArrayList<>());
+        User createdUser = userStorage.createUser(user);
+
+        Film film = new Film(0, "Spy Game", "Film", LocalDate.parse("2001-11-21", formatter), 127, 0, new Mpa(5,"NC-17"), new ArrayList<Genre>(List.of(new Genre(4,"Триллер"))), new HashSet<>());
+        Film createdFilm = filmStorage.createFilm(film);
+        Assertions.assertThat(createdFilm.getRate()).isEqualTo(0L);
+
+        filmStorage.addLike(createdFilm.getId(), createdUser.getId());
+        Film filmWithLike = filmStorage.getFilmById(createdFilm.getId());
+        Assertions.assertThat(filmWithLike.getRate()).isEqualTo(1L);
     }
 
     @Test
     void deleteLike() {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        User user = new User(0, "ivan@mail.ru", "ivan", "ivan", LocalDate.parse("2000-01-20", formatter), new ArrayList<>());
+        User createdUser = userStorage.createUser(user);
+
+        Film film = new Film(0, "Spy Game", "Film", LocalDate.parse("2001-11-21", formatter), 127, 0, new Mpa(5,"NC-17"), new ArrayList<Genre>(List.of(new Genre(4,"Триллер"))), new HashSet<>());
+        Film createdFilm = filmStorage.createFilm(film);
+        Assertions.assertThat(createdFilm.getRate()).isEqualTo(0L);
+
+        filmStorage.addLike(createdFilm.getId(), createdUser.getId());
+        Film filmWithLike = filmStorage.getFilmById(createdFilm.getId());
+        Assertions.assertThat(filmWithLike.getRate()).isEqualTo(1L);
+
+        filmStorage.deleteLike(createdFilm.getId(), createdUser.getId());
+        Film filmWithOutLike = filmStorage.getFilmById(createdFilm.getId());
+        Assertions.assertThat(filmWithOutLike.getRate()).isEqualTo(0L);
     }
 
     @Test

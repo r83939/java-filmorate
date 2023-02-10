@@ -8,6 +8,7 @@ import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.storage.FilmDbStorage;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
@@ -61,11 +62,11 @@ public class FilmDbService {
         return filmStorage.getFilmById(id);
     }
 
-    public Film createFilm(Film newFilm) {
+    public Film createFilm(Film newFilm) throws SQLException {
         return filmStorage.createFilm(newFilm);
     }
 
-    public Film updateFilm(Film updateFilm) throws UpdateFilmException {
+    public Film updateFilm(Film updateFilm) throws UpdateFilmException, SQLException {
         Film film = filmStorage.updateFilm(updateFilm);
         if (film == null) {
             throw new UpdateFilmException("Произошла ошибка при обновлении фильма с ID:" + updateFilm.getId());

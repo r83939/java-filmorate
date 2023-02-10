@@ -20,6 +20,7 @@ import ru.yandex.practicum.filmorate.storage.FilmDbStorage;
 import ru.yandex.practicum.filmorate.storage.UserDbStorage;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -197,7 +198,7 @@ public class FilmoRateApplicationTests {
 
 
     @Test
-    void createFilm() {
+    void createFilm() throws SQLException {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         Film film = new Film(0, "Spy Game", "Film", LocalDate.parse("2001-11-21", formatter), 127, 0, new Mpa(5,"NC-17"), new ArrayList<Genre>(List.of(new Genre(4,"Триллер"))), new HashSet<>());
         Film createdFilm = filmStorage.createFilm(film);
@@ -210,7 +211,7 @@ public class FilmoRateApplicationTests {
     }
 
     @Test
-    void getAllFilms() {
+    void getAllFilms() throws SQLException {
         Assertions.assertThat(filmStorage.getAllFilms()).hasSize(0);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         Film film1 = new Film(0, "Spy Game", "Film", LocalDate.parse("2001-11-21", formatter), 127, 0, new Mpa(5,"NC-17"), new ArrayList<Genre>(List.of(new Genre(4,"Триллер"))), new HashSet<>());
@@ -247,7 +248,7 @@ public class FilmoRateApplicationTests {
     }
 
     @Test
-    void getFilmById() {
+    void getFilmById() throws SQLException {
         Assertions.assertThat(filmStorage.getAllFilms()).hasSize(0);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         Film film1 = new Film(0, "Spy Game", "Film", LocalDate.parse("2001-11-21", formatter), 127, 0, new Mpa(5,"NC-17"), new ArrayList<Genre>(List.of(new Genre(4,"Триллер"))), new HashSet<>());
@@ -260,7 +261,7 @@ public class FilmoRateApplicationTests {
     }
 
     @Test
-    void updateFilm() {
+    void updateFilm() throws SQLException {
         Assertions.assertThat(filmStorage.getAllFilms()).hasSize(0);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         Film film1 = new Film(0, "Spy Game", "Film", LocalDate.parse("2001-11-21", formatter), 127, 0, new Mpa(5,"NC-17"), new ArrayList<Genre>(List.of(new Genre(4,"Триллер"))), new HashSet<>());
@@ -270,7 +271,7 @@ public class FilmoRateApplicationTests {
     }
 
     @Test
-    void deleteFilm() {
+    void deleteFilm() throws SQLException {
         Assertions.assertThat(filmStorage.getAllFilms()).hasSize(0);
         Assertions.assertThat(filmStorage.getAllFilms()).hasSize(0);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -283,7 +284,7 @@ public class FilmoRateApplicationTests {
     }
 
     @Test
-    void addLike() {
+    void addLike() throws SQLException {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         User user = new User(0, "ivan@mail.ru", "ivan", "ivan", LocalDate.parse("2000-01-20", formatter), new ArrayList<>());
         User createdUser = userStorage.createUser(user);
@@ -298,7 +299,7 @@ public class FilmoRateApplicationTests {
     }
 
     @Test
-    void deleteLike() {
+    void deleteLike() throws SQLException {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         User user = new User(0, "ivan@mail.ru", "ivan", "ivan", LocalDate.parse("2000-01-20", formatter), new ArrayList<>());
         User createdUser = userStorage.createUser(user);
@@ -317,7 +318,7 @@ public class FilmoRateApplicationTests {
     }
 
     @Test
-    void getTopFilms() {
+    void getTopFilms() throws SQLException {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         User user1 = new User(0, "ivan@mail.ru", "ivan", "ivan", LocalDate.parse("2000-01-20", formatter), new ArrayList<>());
         User user2 = new User(0, "petr@mail.ru", "petr", "petr", LocalDate.parse("1995-02-10", formatter), new ArrayList<>());

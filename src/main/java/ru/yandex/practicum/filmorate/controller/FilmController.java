@@ -14,6 +14,7 @@ import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.UserService;
 
 import javax.validation.Valid;
+import java.sql.SQLException;
 import java.util.*;
 
 @RestController
@@ -40,14 +41,14 @@ public class FilmController {
     }
 
     @PostMapping
-    public Film addFilm(@Valid @RequestBody Film newFilm) throws EntityAlreadyExistException {
+    public Film addFilm(@Valid @RequestBody Film newFilm) throws EntityAlreadyExistException, SQLException {
         Film createdFilm = filmService.createFilm(newFilm);
         log.trace("Добавлен фильм: " + createdFilm);
         return createdFilm;
     }
 
     @PutMapping
-    public Film updateFilm(@Valid @RequestBody Film updateFilm) throws UnknownFilmException, UpdateFilmException {
+    public Film updateFilm(@Valid @RequestBody Film updateFilm) throws UnknownFilmException, UpdateFilmException, SQLException {
         Film updatedFilm = filmService.updateFilm(updateFilm);
         log.trace("Обновлен фильм: " + updatedFilm);
         return updatedFilm;

@@ -13,12 +13,17 @@ import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.model.User;
 
+import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.*;
 
 @Repository
 @Slf4j
 public class FilmDbStorage implements FilmStorage {
+    final int  SQLBATCHSIZE = 100;
     private final JdbcTemplate jdbcTemplate;
     private final SimpleJdbcInsert insertIntoFilm;
 
@@ -30,7 +35,7 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     @Transactional
-    public Film createFilm(Film film) {
+    public Film createFilm(Film film) throws SQLException {
         final Map<String, Object> parameters = new HashMap<>();
         parameters.put("name", film.getName());
         parameters.put("description", film.getDescription());
@@ -40,18 +45,14 @@ public class FilmDbStorage implements FilmStorage {
         parameters.put("mpa_id", film.getMpa().getId());
         Long filmId = (Long) insertIntoFilm.executeAndReturnKey(parameters);
 
-        String sqlQuery = "INSERT INTO FILMGENRES (film_id, genre_id) values (?,?)";
-        if (film.getGenres().size() > 0) {
-            for (Genre genre : film.getGenres()) {
-                jdbcTemplate.update(sqlQuery, filmId, genre.getId());
-            }
-        }
+        addGenresByFilmId(filmId, film.getGenres());
+
         return getFilmById(filmId);
     }
 
     @Override
     @Transactional
-    public Film updateFilm(Film film) {
+    public Film updateFilm(Film film) throws SQLException {
         String sqlQuery = "UPDATE FILMS SET name=?, description=?, release_date=?, duration=?, rate=?, mpa_id=? WHERE film_id=?";
         if (jdbcTemplate.update(sqlQuery,
                 film.getName(),
@@ -73,12 +74,22 @@ public class FilmDbStorage implements FilmStorage {
         jdbcTemplate.update(sqlQuery, filmId);
     }
 
-    public void addGenresByFilmId(long filmId, List<Genre> genres) {
+    @Transactional
+    public void addGenresByFilmId(long filmId, List<Genre> genres) throws SQLException {
+        final int batchSize = 1000;
+        DataSource ds = jdbcTemplate.getDataSource();
+        Connection connection = ds.getConnection();
+        connection.setAutoCommit(false);
         String sqlQuery = "INSERT INTO FILMGENRES (film_id, genre_id) values (?,?)";
-            for (Genre genre: genres) {
-                jdbcTemplate.update(sqlQuery, filmId, genre.getId());
+        jdbcTemplate.batchUpdate(sqlQuery,
+                genres,
+                SQLBATCHSIZE,
+                (PreparedStatement ps, Genre genre) -> {
+                    ps.setLong(1, filmId);
+                    ps.setLong(2, genre.getId());
+                });
         }
-    }
+
 
     @Override
     public Optional<Film> deleteFilm(long id) {

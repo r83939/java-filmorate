@@ -23,7 +23,7 @@ import java.util.*;
 @Repository
 @Slf4j
 public class FilmDbStorage implements FilmStorage {
-    final int  SQLBATCHSIZE = 100;
+    private final static  int  SQLBATCHSIZE = 100;
     private final JdbcTemplate jdbcTemplate;
     private final SimpleJdbcInsert insertIntoFilm;
 

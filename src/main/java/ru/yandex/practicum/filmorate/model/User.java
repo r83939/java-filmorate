@@ -9,14 +9,13 @@ import org.springframework.format.annotation.DateTimeFormat;
 import ru.yandex.practicum.filmorate.validator.Login;
 
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import javax.validation.constraints.*;
 
 @Getter
 @Setter
 public class User {
+
     private long id;
     @Email
     @NotBlank
@@ -30,15 +29,25 @@ public class User {
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     @Past(message = "Incorrect date birthday")
     private LocalDate birthday;
+    private List<Long> friends;
 
-    private Set<Long> friends;
+
 
     public User() {
         this.id = 0;
-        this.friends = new HashSet<>();
+        this.friends = new ArrayList<>();
     }
 
-    public Set<Long> getFriends() {
+    public User(long id, String email, String login, String name, LocalDate birthday, List<Long> friends) {
+        this.id = id;
+        this.email = email;
+        this.login = login;
+        this.name = name;
+        this.birthday = birthday;
+        this.friends = friends;
+    }
+
+    public List<Long> getFriends() {
         return friends;
     }
 

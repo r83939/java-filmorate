@@ -3,32 +3,35 @@ package ru.yandex.practicum.filmorate.service;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.exception.*;
+import ru.yandex.practicum.filmorate.exception.EntityAlreadyExistException;
+import ru.yandex.practicum.filmorate.exception.UnknownUserException;
+import ru.yandex.practicum.filmorate.exception.UserIsNotFriendException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
+import ru.yandex.practicum.filmorate.storage.UserDbStorage;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
-public class UserService  {
-    private final InMemoryUserStorage inMemoryUserStorage;
-    private long counterId;
+public class UserDbService {
+    private final UserDbStorage userDbStorage;
 
     @Autowired
-    public UserService(InMemoryUserStorage inMemoryUserStorage ) {
-        this.inMemoryUserStorage = inMemoryUserStorage;
-        counterId = 0;
+    public UserDbService(UserDbStorage userDbStorage) {
+        this.userDbStorage = userDbStorage;
     }
 
-    public long getCounterId() {
-        return counterId;
+    public User getUserById(long id) throws UnknownUserException {
+        if (userDbStorage.getUserById(id) != null) {
+            return userDbStorage.getUserById(id);
+        }
+        else {
+            throw new UnknownUserException("Не найден пользователь с ID: " + id);
+        }
     }
-    private long setCounterId() {
-        counterId++; // Инкремент счетчика id
-        return counterId;
+
+    public Optional<User> getUserByEmail(String email) {
+        return userDbStorage.getUserByEmail(email);
     }
 
     public User createUser(User user) throws EntityAlreadyExistException {
@@ -38,9 +41,8 @@ public class UserService  {
         if (StringUtils.isBlank(user.getName())) {
             user.setName(user.getLogin());
         }
-        user.setId(setCounterId());
-        inMemoryUserStorage.createUser(user);
-        return user;
+        return userDbStorage.createUser(user);
+
     }
 
     public User updateUser(User user) throws UnknownUserException, EntityAlreadyExistException {
@@ -53,25 +55,12 @@ public class UserService  {
         if (StringUtils.isBlank(user.getName())) {
             user.setName(user.getLogin());
         }
-        User updatedUser = inMemoryUserStorage.updateUser(user);
+        User updatedUser = userDbStorage.updateUser(user);
         return updatedUser;
     }
 
-    public User getUserById(long id) throws UnknownUserException {
-        if (inMemoryUserStorage.getUserById(id) != null) {
-            return inMemoryUserStorage.getUserById(id);
-        }
-        else {
-            throw new UnknownUserException("Не найден пользователь с ID: " + id);
-        }
-    }
-
-    public Optional<User> getUserByEmail(String email) {
-        return inMemoryUserStorage.getUserByEmail(email);
-    }
-
     public List<User> getAllUsers() {
-        return inMemoryUserStorage.getAllUsers();
+        return userDbStorage.getAllUsers();
     }
 
     public void addFriend(long userId, long friendId) throws EntityAlreadyExistException, UnknownUserException {
@@ -84,14 +73,10 @@ public class UserService  {
             throw new UnknownUserException("Пользователь с ID " + friendId + " не существует.");
         }
 
-        if (!user1.addFriend(friendId)) {
-            throw new EntityAlreadyExistException(String.format("Пользователь с ID: %d уже является другом пользователю с ID: ",friendId, userId));
+        if (userDbStorage.isFriend(userId, friendId )) {
+            throw new EntityAlreadyExistException(String.format("Пользователь с ID: %d уже является другом пользователю с ID: %d",friendId, userId));
         }
-        if (!user2.addFriend(userId)) {
-            throw new EntityAlreadyExistException(String.format("Пользователь с ID: %d уже является другом пользователю с ID: ", userId, friendId));
-        }
-        inMemoryUserStorage.updateUser(user1);
-        inMemoryUserStorage.updateUser(user2);
+        userDbStorage.addFriend(userId, friendId);
     }
 
     public void deleteFriend(long userId, long friendId) throws UserIsNotFriendException, UnknownUserException {
@@ -103,32 +88,31 @@ public class UserService  {
         if (user2 == null) {
             throw new UnknownUserException("Пользователь с ID " + friendId + " не существует.");
         }
-        if (!user1.deleteFriend(friendId)) {
-            throw new UserIsNotFriendException(String.format("У пользователя ID: %d  нет друга с ID: %d", friendId, userId));
+        if (!userDbStorage.isFriend(userId, friendId )) {
+            throw new UserIsNotFriendException(String.format("У пользователя ID: %d  нет друга с ID: %d", userId, friendId));
         }
-        if (!user2.deleteFriend(userId)) {
-            throw new UserIsNotFriendException(String.format("У пользователя ID: %d  нет друга с ID: %d" , userId, friendId));
-        }
-        inMemoryUserStorage.updateUser(user1);
-        inMemoryUserStorage.updateUser(user2);
+        userDbStorage.deleteFriend(userId, friendId);
     }
 
-    public List<User> getAllFriends(long userId) throws UnknownUserException {
+
+    public List<User> getAllFriends(Long userId) throws UnknownUserException {
         if (getUserById(userId) == null) {
             throw new UnknownUserException("Пользователь с ID " + userId  + " не существует.");
         }
-        return inMemoryUserStorage.getAllFriends(userId);
+        return userDbStorage.getAllFriends(userId);
     }
 
-    public List<User> getCommonFriends(long id, long otherId) throws UnknownUserException {
+    public List<User> getCommonFriends(Long id, Long otherId) throws UnknownUserException {
         if (getUserById(id) == null) {
             throw new UnknownUserException("Пользователь с ID " + id + " не существует.");
         }
         if (getUserById(otherId) == null) {
             throw new UnknownUserException("Пользователь с ID " + otherId + " не существует.");
         }
-        return inMemoryUserStorage.getCommonFriends(id, otherId);
+        return userDbStorage.getCommonFriends(id, otherId);
     }
 
-
+    public boolean isUserExist(Long userId) {
+        return userDbStorage.isUserExist(userId);
+    }
 }

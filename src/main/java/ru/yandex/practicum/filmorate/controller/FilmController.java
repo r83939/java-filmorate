@@ -5,25 +5,26 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exception.EntityAlreadyExistException;
-import ru.yandex.practicum.filmorate.exception.NoLikeException;
-import ru.yandex.practicum.filmorate.exception.UnknownFilmException;
-import ru.yandex.practicum.filmorate.exception.UnknownUserException;
+import ru.yandex.practicum.filmorate.exception.*;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.Mpa;
+import ru.yandex.practicum.filmorate.service.FilmDbService;
 import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.UserService;
 
 import javax.validation.Valid;
+import java.sql.SQLException;
 import java.util.*;
 
 @RestController
 @Slf4j
 @RequestMapping("/films")
 public class FilmController {
-    private final FilmService filmService;
+    private final FilmDbService filmService;
 
     @Autowired
-    public FilmController(FilmService filmService) {
+    public FilmController(FilmDbService filmService) {
         this.filmService = filmService;
     }
 
@@ -40,14 +41,14 @@ public class FilmController {
     }
 
     @PostMapping
-    public Film addFilm(@Valid @RequestBody Film newFilm) throws EntityAlreadyExistException {
+    public Film addFilm(@Valid @RequestBody Film newFilm) throws EntityAlreadyExistException, SQLException {
         Film createdFilm = filmService.createFilm(newFilm);
         log.trace("Добавлен фильм: " + createdFilm);
         return createdFilm;
     }
 
     @PutMapping
-    public Film updateFilm(@Valid @RequestBody Film updateFilm) throws UnknownFilmException {
+    public Film updateFilm(@Valid @RequestBody Film updateFilm) throws UnknownFilmException, UpdateFilmException, SQLException {
         Film updatedFilm = filmService.updateFilm(updateFilm);
         log.trace("Обновлен фильм: " + updatedFilm);
         return updatedFilm;
@@ -84,4 +85,10 @@ public class FilmController {
         List<Film> topFilms = filmService.getTopFilms(count);
         return topFilms;
     }
+
+
+
+
+
+
 }
